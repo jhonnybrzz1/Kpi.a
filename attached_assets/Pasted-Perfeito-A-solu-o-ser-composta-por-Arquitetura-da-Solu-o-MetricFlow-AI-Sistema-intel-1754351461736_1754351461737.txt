@@ -1,0 +1,90 @@
+Perfeito. A solução será composta por:
+
+⸻
+
+🧠 Arquitetura da Solução: “MetricFlow AI”
+
+Sistema inteligente de sugestão de métricas, KPIs e OKRs com explicação detalhada, gerando PDF ao final.
+
+⸻
+
+📥 Entrada do Usuário
+	•	Texto livre com o escopo da iniciativa (ex: “Quero criar uma funcionalidade de notificação de estoque baixo no POS”)
+
+⸻
+
+⚙️ Fluxo Interno da Solução
+
+graph TD
+A[Input do usuário] --> B[Análise de contexto com Mistral]
+B --> C[Identificação de frameworks aplicáveis]
+C --> D[Análise de dados e métricas com GPT-4]
+D --> E[Montagem do conteúdo final]
+E --> F[Geração do PDF final com Streamlit ou WeasyPrint]
+
+
+⸻
+
+🧠 Responsabilidades por modelo
+
+Função	Modelo utilizado
+Análise de contexto do escopo	🧠 Mistral (via Open Source ou API)
+Geração de métricas e KPIs	📊 GPT-4 (via OpenAI)
+Escrita explicativa e didática	✍️ GPT-4
+Montagem do relatório final PDF	📄 Python (WeasyPrint ou ReportLab)
+
+
+⸻
+
+🧩 Etapas detalhadas
+
+1. 🧠 Mistral — Compreensão do escopo
+	•	Classifica a iniciativa:
+	•	Tipo: funcionalidade, processo, produto
+	•	Objetivo: aquisição, ativação, retenção, receita, engajamento
+	•	Etapa do funil (AARRR)
+	•	Retorna uma estrutura de contexto semântico limpa
+
+2. 📊 GPT-4 — Geração de indicadores e explicações
+	•	Usa o contexto do Mistral para:
+	•	Sugerir North Star Metric (se aplicável)
+	•	Criar KPIs relevantes com fórmulas
+	•	Explicar como medir cada um
+	•	Sugerir OKRs completos com KR quantificados
+	•	Indicar frameworks aplicados (ex: HEART, RICE, etc.)
+
+3. 📝 Formatação do conteúdo
+	•	Compila em 4 blocos:
+	•	Resumo executivo da iniciativa
+	•	Métricas sugeridas com explicação
+	•	OKRs derivados
+	•	Recomendações técnicas para implementação da medição
+
+4. 📄 Geração do PDF
+	•	Templates prontos com:
+	•	Capa (nome da iniciativa, data, responsável)
+	•	Corpo com índice automático
+	•	Estilo profissional e legível
+
+⸻
+
+📤 Saída Final
+	•	Documento em PDF com:
+	•	Contextualização da iniciativa
+	•	Justificativa das métricas escolhidas
+	•	Plano de medição
+	•	OKRs prontos para adoção
+	•	Exemplo de nome:
+Relatorio_MetricFlow_NomeDaIniciativa.pdf
+
+⸻
+
+🚀 Quer rodar agora?
+
+Posso montar o primeiro protótipo do analisador_metricflow.py, com estrutura para:
+	•	input.py → coleta e limpeza do escopo
+	•	contexto_mistral.py → análise semântica
+	•	gerador_metricas_gpt.py → sugestão de KPIs e OKRs
+	•	pdf_builder.py → geração automática do relatório final
+
+Posso começar por qual parte? Quer que eu gere a estrutura de código ou só o prompt de inferência primeiro?
