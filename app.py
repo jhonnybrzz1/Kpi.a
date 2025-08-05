@@ -2,9 +2,6 @@ import streamlit as st
 import os
 from datetime import datetime
 import traceback
-import PyPDF2
-import docx
-from io import BytesIO
 
 from services.mistral_service import MistralService
 from services.openai_service import OpenAIService
@@ -57,69 +54,6 @@ def check_api_keys():
     
     return True
 
-def process_uploaded_file(uploaded_file):
-    """Processa arquivo PRD carregado pelo usuário"""
-    try:
-        if uploaded_file is None:
-            return ""
-            
-        file_type = uploaded_file.type
-        file_name = uploaded_file.name.lower()
-        content = ""
-        
-        # Reset file pointer
-        uploaded_file.seek(0)
-        file_bytes = uploaded_file.read()
-        
-        if file_type == "application/pdf" or file_name.endswith('.pdf'):
-            # Processa PDF
-            try:
-                pdf_reader = PyPDF2.PdfReader(BytesIO(file_bytes))
-                for page in pdf_reader.pages:
-                    content += page.extract_text() + "\n"
-            except Exception as pdf_error:
-                st.warning(f"Erro ao ler PDF: {str(pdf_error)}")
-                return ""
-                
-        elif file_type == "text/plain" or file_name.endswith('.txt'):
-            # Processa arquivo TXT
-            try:
-                content = file_bytes.decode('utf-8')
-            except UnicodeDecodeError:
-                content = file_bytes.decode('latin-1')
-            
-        elif (file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-              or file_name.endswith('.docx')):
-            # Processa arquivo DOCX
-            try:
-                doc = docx.Document(BytesIO(file_bytes))
-                content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-            except Exception as docx_error:
-                st.warning(f"Erro ao ler DOCX: {str(docx_error)}")
-                return ""
-            
-        elif file_name.endswith('.md'):
-            # Processa arquivo Markdown
-            try:
-                content = file_bytes.decode('utf-8')
-            except UnicodeDecodeError:
-                content = file_bytes.decode('latin-1')
-        
-        else:
-            st.warning(f"Tipo de arquivo não suportado: {file_type}")
-            return ""
-            
-        if content.strip():
-            st.success(f"✅ Arquivo {uploaded_file.name} processado com sucesso!")
-            return content.strip()
-        else:
-            st.warning("⚠️ Arquivo parece estar vazio ou não foi possível extrair texto.")
-            return ""
-        
-    except Exception as e:
-        st.error(f"❌ Erro ao processar arquivo: {str(e)}")
-        return ""
-
 # Interface principal
 def main():
     if not check_api_keys():
@@ -128,56 +62,31 @@ def main():
     # Campo de entrada
     st.header("📝 Descreva sua Iniciativa")
     user_input = st.text_area(
-        "Digite uma descrição da sua iniciativa OU anexe um documento PRD abaixo:",
-        height=120,
+        "Digite uma descrição detalhada da sua iniciativa, projeto ou funcionalidade:",
+        height=150,
         placeholder="Ex: Quero criar uma funcionalidade de notificação de estoque baixo no sistema POS para alertar gerentes quando produtos atingem quantidade mínima..."
     )
     
-    # Upload de documento PRD (opcional)
-    st.subheader("📎 Anexar Documento PRD (Opcional)")
-    
-    with st.expander("ℹ️ Como anexar documentos", expanded=False):
-        st.markdown("""
-        **Formatos aceitos:**
-        - 📄 **PDF**: Documentos de especificação
-        - 📝 **TXT**: Arquivos de texto simples  
-        - 📄 **DOCX**: Documentos do Word
-        - 📝 **MD**: Arquivos Markdown
-        
-        **Tamanho máximo:** 200MB por arquivo
-        
-        **Dica:** Se você anexar um PRD, ele será usado como contexto principal. A descrição acima se torna opcional neste caso.
-        """)
-    
-    uploaded_file = st.file_uploader(
-        "Selecione um arquivo PRD:",
-        type=['pdf', 'txt', 'docx', 'md'],
-        help="Clique ou arraste um arquivo aqui",
-        accept_multiple_files=False,
-        key="prd_uploader"
-    )
-    
-    # Mostra status do arquivo anexado
-    if uploaded_file is not None:
-        st.info(f"📎 Arquivo anexado: **{uploaded_file.name}** ({uploaded_file.size} bytes)")
-        st.success("✅ O documento PRD será usado como base principal para análise!")
-    
     # Campos opcionais
-    responsible = st.text_input(
-        "👤 Responsável (opcional)",
-        placeholder="Nome do responsável pelo projeto"
-    )
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        responsible = st.text_input(
+            "👤 Responsável (opcional)",
+            placeholder="Nome do responsável pelo projeto"
+        )
+    
+    with col2:
+        company = st.text_input(
+            "🏢 Empresa (opcional)",
+            placeholder="Nome da empresa"
+        )
     
     # Botão de processamento
     if st.button("🚀 Gerar Análise MetricFlow", type="primary", use_container_width=True):
         
-        # Processa arquivo PRD primeiro se fornecido
-        prd_content = ""
-        if uploaded_file is not None:
-            prd_content = process_uploaded_file(uploaded_file)
-        
-        # Validação da entrada (considerando se há arquivo PRD)
-        validation_result = validate_input(user_input, bool(prd_content))
+        # Validação da entrada
+        validation_result = validate_input(user_input)
         if not validation_result["valid"]:
             st.error(f"❌ {validation_result['message']}")
             return
@@ -201,37 +110,23 @@ def main():
                 status_text.text("🧠 Analisando contexto com Mistral...")
                 progress_bar.progress(25)
                 
-                # Prepara contexto para análise
-                if prd_content:
-                    # Se há PRD, usa ele como contexto principal
-                    full_context = f"Documento PRD anexado:\n{prd_content}"
-                    if clean_input.strip():
-                        full_context += f"\n\nDescrição adicional fornecida:\n{clean_input}"
-                else:
-                    # Se não há PRD, usa apenas a descrição
-                    full_context = clean_input
-                
-                context_analysis = mistral_service.analyze_context(full_context)
+                context_analysis = mistral_service.analyze_context(clean_input)
                 
                 # Etapa 2: Geração de métricas com OpenAI
                 status_text.text("📊 Gerando métricas e KPIs com GPT-4...")
                 progress_bar.progress(50)
                 
-                metrics_analysis = openai_service.generate_metrics(full_context, context_analysis)
+                metrics_analysis = openai_service.generate_metrics(clean_input, context_analysis)
                 
                 # Etapa 3: Compilação dos dados
                 status_text.text("📝 Compilando relatório...")
                 progress_bar.progress(75)
                 
                 # Preparação dos dados para o PDF
-                initiative_description = prd_content if prd_content else clean_input
-                if prd_content and clean_input.strip():
-                    initiative_description = f"PRD: {prd_content[:500]}...\n\nDescrição: {clean_input}"
-                
                 report_data = {
-                    "initiative_description": initiative_description,
-                    "has_prd": bool(prd_content),
+                    "initiative_description": clean_input,
                     "responsible": responsible or "Não informado",
+                    "company": company or "Não informado",
                     "date": datetime.now().strftime("%d/%m/%Y"),
                     "context_analysis": context_analysis,
                     "metrics_analysis": metrics_analysis
@@ -248,10 +143,6 @@ def main():
                 
                 # Exibição dos resultados
                 st.success("🎉 Relatório MetricFlow gerado com sucesso!")
-                
-                # Debug information
-                if st.checkbox("🔍 Mostrar informações de debug"):
-                    st.json({"context_analysis": context_analysis, "metrics_analysis": metrics_analysis})
                 
                 # Seção de resultados
                 st.header("📊 Resultados da Análise")

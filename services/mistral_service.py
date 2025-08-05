@@ -23,21 +23,22 @@ class MistralService:
         """
         
         prompt = f"""
-Você é um especialista em produto com foco em análise de contexto. Sua função é interpretar descrições livres de iniciativas e classificá-las para uso em decisões de produto e sugestão de métricas.
-
-Extraia e retorne os seguintes campos, com base no texto fornecido:
-
-1. Tipo da Iniciativa (ex: funcionalidade, campanha, melhoria, experimento)
-2. Objetivo Principal do Negócio (ex: aquisição, retenção, receita, engajamento, conversão)
-3. Etapa principal do funil AARRR relacionada à iniciativa
-4. Complexidade esperada (baixa, média, alta)
-5. Áreas de Impacto (ex: tecnologia, vendas, UX, dados, marketing)
-6. Frameworks que melhor se aplicam (ex: HEART, AARRR, RICE, JTBD, North Star)
-7. Justificativa da classificação
-
-O output deve ser em formato JSON. Evite explicações adicionais fora desse formato.
+Você é um especialista em análise de projetos e métricas de negócio. 
+Analise a seguinte iniciativa e classifique-a nos critérios abaixo.
 
 INICIATIVA: {initiative_text}
+
+Forneça uma análise estruturada em JSON com os seguintes campos:
+
+1. "tipo": Classifique como uma das opções: "funcionalidade", "processo", "produto", "estrategia"
+2. "objetivo": Classifique o objetivo principal como: "aquisicao", "ativacao", "retencao", "receita", "engajamento"  
+3. "etapa_funil": Identifique a etapa do funil AARRR: "aquisicao", "ativacao", "retencao", "receita", "referencia"
+4. "complexidade": Avalie como: "baixa", "media", "alta"
+5. "area_impacto": Lista de áreas impactadas (ex: ["vendas", "operacoes", "tecnologia"])
+6. "justificativa": Texto explicando a classificação e contexto identificado
+7. "palavras_chave": Lista das palavras-chave mais relevantes da iniciativa
+
+Responda APENAS com o JSON válido, sem texto adicional.
         """
         
         try:
@@ -69,23 +70,12 @@ INICIATIVA: {initiative_text}
                 result = response.json()
                 content = result["choices"][0]["message"]["content"]
                 
-                # Debug: print da resposta
-                print(f"Mistral response: {content}")
-                
                 # Tenta fazer parse do JSON
                 try:
-                    parsed_json = json.loads(content)
-                    print(f"Mistral parsed successfully: {parsed_json}")
-                    
-                    # Normaliza a estrutura se necessário
-                    normalized = self._normalize_mistral_response(parsed_json)
-                    print(f"Mistral normalized: {normalized}")
-                    return normalized
+                    return json.loads(content)
                 except json.JSONDecodeError:
                     # Se falhar, extrai JSON do texto
-                    print(f"JSON parse failed, trying extraction")
-                    extracted = self._extract_json_from_text(content)
-                    return self._normalize_mistral_response(extracted)
+                    return self._extract_json_from_text(content)
             
             else:
                 raise Exception(f"Erro na API Mistral: {response.status_code} - {response.text}")
@@ -109,22 +99,22 @@ INICIATIVA: {initiative_text}
             # Fallback: retorna estrutura padrão
             return {
                 "tipo": "funcionalidade",
-                "objetivo": "aquisicao",
+                "objetivo": "operacao",
                 "etapa_funil": "ativacao",
                 "complexidade": "media",
                 "area_impacto": ["tecnologia"],
-                "frameworks_aplicaveis": ["AARRR", "HEART"],
-                "justificativa": "Análise automática baseada no texto fornecido."
+                "justificativa": "Análise automática baseada no texto fornecido.",
+                "palavras_chave": ["iniciativa", "projeto", "implementação"]
             }
             
         except Exception:
             # Retorna estrutura padrão em caso de erro
             return {
                 "tipo": "funcionalidade",
-                "objetivo": "aquisicao",
+                "objetivo": "operacao",
                 "etapa_funil": "ativacao",
                 "complexidade": "media",
                 "area_impacto": ["tecnologia"],
-                "frameworks_aplicaveis": ["AARRR", "HEART"],
-                "justificativa": "Não foi possível processar a análise de contexto."
+                "justificativa": "Não foi possível processar a análise de contexto.",
+                "palavras_chave": ["iniciativa", "projeto"]
             }

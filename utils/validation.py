@@ -1,35 +1,21 @@
 import re
 from typing import Dict, Any
 
-def validate_input(text: str, has_prd_file: bool = False) -> Dict[str, Any]:
+def validate_input(text: str) -> Dict[str, Any]:
     """
     Valida o texto de entrada do usuário
     
     Args:
         text: Texto a ser validado
-        has_prd_file: Se há um arquivo PRD anexado
         
     Returns:
         Dict com resultado da validação
     """
     
-    # Se há arquivo PRD, o texto é opcional
-    if has_prd_file:
-        if text and len(text) > 5000:
-            return {
-                "valid": False,
-                "message": "A descrição adicional é muito longa. Por favor, limite a 5000 caracteres."
-            }
-        return {
-            "valid": True,
-            "message": "Arquivo PRD será usado como base para análise"
-        }
-    
-    # Se não há arquivo PRD, valida o texto normalmente
     if not text or not text.strip():
         return {
             "valid": False,
-            "message": "Por favor, forneça uma descrição da sua iniciativa OU anexe um documento PRD."
+            "message": "Por favor, forneça uma descrição da sua iniciativa."
         }
     
     # Verifica tamanho mínimo

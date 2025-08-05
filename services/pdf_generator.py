@@ -54,10 +54,10 @@ class PDFGenerator:
         okrs_html = self._format_okrs(metrics.get('okrs', []))
         frameworks_html = self._format_frameworks(metrics.get('frameworks_aplicaveis', []))
         implementation_html = self._format_implementation(metrics.get('implementacao_medicao', {}))
-        next_steps_html = self._format_next_steps(metrics.get('proximos_passos', []))
         
         # Substituições no template
         replacements = {
+            '{{COMPANY}}': data.get('company', 'Não informado'),
             '{{RESPONSIBLE}}': data.get('responsible', 'Não informado'),
             '{{DATE}}': data.get('date', datetime.now().strftime('%d/%m/%Y')),
             '{{INITIATIVE}}': data.get('initiative_description', ''),
@@ -74,8 +74,7 @@ class PDFGenerator:
             '{{OKRS_LIST}}': okrs_html,
             '{{FRAMEWORKS_LIST}}': frameworks_html,
             '{{IMPLEMENTATION_DETAILS}}': implementation_html,
-            '{{RISKS_LIST}}': self._format_risks(metrics.get('riscos_metricas', [])),
-            '{{NEXT_STEPS_LIST}}': next_steps_html
+            '{{RISKS_LIST}}': self._format_risks(metrics.get('riscos_metricas', []))
         }
         
         # Aplica as substituições
@@ -177,18 +176,6 @@ class PDFGenerator:
         html = "<ul>"
         for risk in risks:
             html += f"<li>{risk}</li>"
-        html += "</ul>"
-        
-        return html
-    
-    def _format_next_steps(self, steps: list) -> str:
-        """Formata lista de próximos passos para HTML"""
-        if not steps:
-            return "<p>Nenhum próximo passo específico foi gerado.</p>"
-        
-        html = "<ul>"
-        for step in steps:
-            html += f"<li>{step}</li>"
         html += "</ul>"
         
         return html

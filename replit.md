@@ -7,27 +7,20 @@ MetricFlow AI is an intelligent system for generating metrics, KPIs, and OKRs re
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Interface language: Portuguese (pt-BR).
-Document processing: Support for PRD attachments (PDF, DOCX, TXT, MD).
-Required fields: Only initiative description (company field removed as optional).
 
 ## System Architecture
 
 ### Frontend Architecture
 - **Streamlit Web Application**: Single-page application providing an intuitive interface for users to input initiative descriptions and download generated reports
-- **File Upload Support**: Accepts PRD documents (PDF, DOCX, TXT, Markdown) for enhanced analysis
 - **Sidebar Navigation**: Contextual help and usage examples to guide user interaction
 - **Real-time Validation**: Input validation and sanitization before processing
-- **Simplified Interface**: Company field made optional, focus on initiative description
 
 ### Backend Architecture
 - **Service-Oriented Design**: Modular services pattern with dedicated classes for each AI provider and PDF generation
-- **Document Processing**: Multi-format file processing (PDF via PyPDF2, DOCX via python-docx, TXT/MD direct)
 - **Two-Stage AI Processing**: 
-  - Stage 1: Mistral AI analyzes context using enhanced prompts for product-focused classification
-  - Stage 2: OpenAI GPT-4 generates comprehensive metrics with implementation guidance and next steps
+  - Stage 1: Mistral AI analyzes context and classifies the initiative (type, objective, funnel stage, complexity)
+  - Stage 2: OpenAI GPT-4 generates specific metrics, KPIs, and OKRs based on the contextual analysis
 - **Template-Based PDF Generation**: HTML templates with CSS styling converted to PDF using WeasyPrint
-- **Enhanced Prompts**: Optimized system prompts based on product expertise best practices
 
 ### Data Flow
 1. User submits initiative description
