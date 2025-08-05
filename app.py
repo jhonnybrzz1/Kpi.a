@@ -249,6 +249,10 @@ def main():
                 # Exibição dos resultados
                 st.success("🎉 Relatório MetricFlow gerado com sucesso!")
                 
+                # Debug information
+                if st.checkbox("🔍 Mostrar informações de debug"):
+                    st.json({"context_analysis": context_analysis, "metrics_analysis": metrics_analysis})
+                
                 # Seção de resultados
                 st.header("📊 Resultados da Análise")
                 

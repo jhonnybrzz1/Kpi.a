@@ -98,10 +98,48 @@ CONTEXTO ANALISADO:
             content = response.choices[0].message.content
             if content is None:
                 raise Exception("Resposta vazia do OpenAI")
-            return json.loads(content)
+            
+            # Debug: print da resposta
+            print(f"OpenAI response: {content}")
+            
+            parsed_json = json.loads(content)
+            print(f"OpenAI parsed successfully: {parsed_json}")
+            return parsed_json
             
         except json.JSONDecodeError as e:
-            raise Exception(f"Erro ao decodificar resposta JSON do OpenAI: {str(e)}")
+            # Retorna estrutura básica em caso de erro de JSON
+            return {
+                "north_star_metric": {
+                    "nome": "Taxa de Sucesso da Iniciativa",
+                    "descricao": "Métrica principal para medir o sucesso da iniciativa",
+                    "justificativa": "Métrica padrão devido a erro no processamento"
+                },
+                "kpis": [{
+                    "nome": "KPI Principal",
+                    "descricao": "Indicador principal de performance",
+                    "formula": "A definir",
+                    "frequencia_medicao": "semanal",
+                    "meta_sugerida": "A definir",
+                    "responsavel_area": "Produto"
+                }],
+                "okrs": [{
+                    "objetivo": "Implementar iniciativa com sucesso",
+                    "key_results": ["Completar implementação", "Atingir métricas básicas", "Validar com usuários"],
+                    "prazo": "trimestral"
+                }],
+                "frameworks_aplicaveis": [{
+                    "nome": "AARRR",
+                    "aplicacao": "Framework padrão para análise de funil"
+                }],
+                "implementacao_medicao": {
+                    "ferramentas_sugeridas": ["Google Analytics"],
+                    "eventos_configurar": ["Evento principal"],
+                    "campos_rastreio": ["Campo básico"],
+                    "dashboards": "Dashboard básico de acompanhamento"
+                },
+                "riscos_metricas": ["Falta de dados", "Complexidade de implementação"],
+                "proximos_passos": ["Definir métricas específicas", "Implementar tracking", "Configurar dashboards", "Treinar equipe"]
+            }
         except Exception as e:
             raise Exception(f"Erro no serviço OpenAI: {str(e)}")
     

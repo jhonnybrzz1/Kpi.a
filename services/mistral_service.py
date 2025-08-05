@@ -69,11 +69,17 @@ INICIATIVA: {initiative_text}
                 result = response.json()
                 content = result["choices"][0]["message"]["content"]
                 
+                # Debug: print da resposta
+                print(f"Mistral response: {content}")
+                
                 # Tenta fazer parse do JSON
                 try:
-                    return json.loads(content)
+                    parsed_json = json.loads(content)
+                    print(f"Mistral parsed successfully: {parsed_json}")
+                    return parsed_json
                 except json.JSONDecodeError:
                     # Se falhar, extrai JSON do texto
+                    print(f"JSON parse failed, trying extraction")
                     return self._extract_json_from_text(content)
             
             else:
@@ -98,22 +104,22 @@ INICIATIVA: {initiative_text}
             # Fallback: retorna estrutura padrão
             return {
                 "tipo": "funcionalidade",
-                "objetivo": "operacao",
+                "objetivo": "aquisicao",
                 "etapa_funil": "ativacao",
                 "complexidade": "media",
                 "area_impacto": ["tecnologia"],
-                "justificativa": "Análise automática baseada no texto fornecido.",
-                "palavras_chave": ["iniciativa", "projeto", "implementação"]
+                "frameworks_aplicaveis": ["AARRR", "HEART"],
+                "justificativa": "Análise automática baseada no texto fornecido."
             }
             
         except Exception:
             # Retorna estrutura padrão em caso de erro
             return {
                 "tipo": "funcionalidade",
-                "objetivo": "operacao",
+                "objetivo": "aquisicao",
                 "etapa_funil": "ativacao",
                 "complexidade": "media",
                 "area_impacto": ["tecnologia"],
-                "justificativa": "Não foi possível processar a análise de contexto.",
-                "palavras_chave": ["iniciativa", "projeto"]
+                "frameworks_aplicaveis": ["AARRR", "HEART"],
+                "justificativa": "Não foi possível processar a análise de contexto."
             }
