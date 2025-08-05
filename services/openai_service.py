@@ -26,8 +26,7 @@ class OpenAIService:
         """
         
         prompt = f"""
-Você é um especialista em métricas de produto, KPIs e OKRs. Com base na iniciativa e contexto fornecidos, 
-gere uma análise completa de métricas.
+Você é um assistente de produto especialista em métricas, OKRs e análise estratégica de funcionalidades. Seu papel é receber um contexto estruturado de uma iniciativa e gerar uma análise completa.
 
 INICIATIVA: {initiative_text}
 
@@ -37,56 +36,62 @@ CONTEXTO ANALISADO:
 - Etapa do funil: {context.get('etapa_funil', 'N/A')}
 - Complexidade: {context.get('complexidade', 'N/A')}
 - Áreas de impacto: {', '.join(context.get('area_impacto', []))}
+- Frameworks aplicáveis: {', '.join(context.get('frameworks_aplicaveis', []))}
 
-Gere uma resposta em JSON com a seguinte estrutura:
+Gere uma análise completa em JSON com:
 
 {{
   "north_star_metric": {{
-    "nome": "Nome da métrica principal",
-    "descricao": "Descrição detalhada da North Star Metric",
-    "justificativa": "Por que esta é a métrica mais importante"
+    "nome": "Nome da NSM",
+    "descricao": "Descrição detalhada",
+    "justificativa": "Justificativa da escolha"
   }},
   "kpis": [
     {{
       "nome": "Nome do KPI",
-      "descricao": "Descrição do KPI",
+      "descricao": "Descrição detalhada",
       "formula": "Fórmula de cálculo",
-      "frequencia_medicao": "diária/semanal/mensal",
-      "meta_sugerida": "Meta numérica sugerida",
-      "responsavel_area": "Área responsável pela medição"
+      "frequencia_medicao": "Frequência recomendada",
+      "meta_sugerida": "Meta sugerida",
+      "responsavel_area": "Área responsável"
     }}
   ],
   "okrs": [
     {{
-      "objetivo": "Objetivo claro e inspirador",
+      "objetivo": "Objetivo (O)",
       "key_results": [
-        "Key Result 1 com meta quantificada",
-        "Key Result 2 com meta quantificada",
-        "Key Result 3 com meta quantificada"
+        "Key Result 1 quantificado",
+        "Key Result 2 quantificado", 
+        "Key Result 3 quantificado"
       ],
-      "prazo": "Prazo sugerido (ex: trimestral)"
+      "prazo": "Prazo sugerido"
     }}
   ],
   "frameworks_aplicaveis": [
     {{
-      "nome": "Nome do framework (ex: HEART, RICE, AARRR)",
-      "aplicacao": "Como aplicar este framework na iniciativa"
+      "nome": "Nome do framework",
+      "aplicacao": "Como aplicar e contribuir para análise"
     }}
   ],
   "implementacao_medicao": {{
-    "ferramentas_sugeridas": ["Lista de ferramentas para medição"],
-    "setup_tracking": "Instruções para configurar o tracking",
-    "dashboards": "Sugestões de dashboards e visualizações"
+    "ferramentas_sugeridas": ["GA4", "Mixpanel", "Amplitude"],
+    "eventos_configurar": ["Lista de eventos a configurar"],
+    "campos_rastreio": ["Campos recomendados para rastreio"],
+    "dashboards": "Dashboards ou relatórios a serem criados"
   }},
   "riscos_metricas": [
-    "Risco 1 relacionado às métricas",
-    "Risco 2 que pode afetar a medição"
+    "Risco operacional ou técnico 1",
+    "Risco operacional ou técnico 2"
+  ],
+  "proximos_passos": [
+    "Ação prática 1 para implementação",
+    "Ação prática 2 para medição",
+    "Ação prática 3 para adoção dos OKRs",
+    "Ação prática 4"
   ]
 }}
 
-Seja específico e prático. As métricas devem ser SMART (Específicas, Mensuráveis, Atingíveis, Relevantes, Temporais).
-Inclua pelo menos 3-5 KPIs principais e 1-2 OKRs completos.
-
+Formate sua resposta de forma clara e segmentada. As métricas devem ser SMART e práticas.
 Responda APENAS com o JSON válido, sem texto adicional.
         """
         

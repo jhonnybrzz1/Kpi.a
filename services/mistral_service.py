@@ -23,22 +23,22 @@ class MistralService:
         """
         
         prompt = f"""
-Você é um especialista em análise de projetos e métricas de negócio. 
-Analise a seguinte iniciativa e classifique-a nos critérios abaixo.
+Você é um especialista em produto com foco em análise de contexto. Sua função é interpretar descrições livres de iniciativas e classificá-las para uso em decisões de produto e sugestão de métricas.
 
 INICIATIVA: {initiative_text}
 
-Forneça uma análise estruturada em JSON com os seguintes campos:
+Extraia e retorne os seguintes campos, com base no texto fornecido:
 
-1. "tipo": Classifique como uma das opções: "funcionalidade", "processo", "produto", "estrategia"
-2. "objetivo": Classifique o objetivo principal como: "aquisicao", "ativacao", "retencao", "receita", "engajamento"  
-3. "etapa_funil": Identifique a etapa do funil AARRR: "aquisicao", "ativacao", "retencao", "receita", "referencia"
-4. "complexidade": Avalie como: "baixa", "media", "alta"
-5. "area_impacto": Lista de áreas impactadas (ex: ["vendas", "operacoes", "tecnologia"])
-6. "justificativa": Texto explicando a classificação e contexto identificado
-7. "palavras_chave": Lista das palavras-chave mais relevantes da iniciativa
+1. "tipo": Tipo da Iniciativa (ex: funcionalidade, campanha, melhoria, experimento)
+2. "objetivo": Objetivo Principal do Negócio (ex: aquisição, retenção, receita, engajamento, conversão)
+3. "etapa_funil": Etapa principal do funil AARRR relacionada à iniciativa
+4. "complexidade": Complexidade esperada (baixa, média, alta)
+5. "area_impacto": Áreas de Impacto (ex: tecnologia, vendas, UX, dados, marketing)
+6. "frameworks_aplicaveis": Frameworks que melhor se aplicam (ex: HEART, AARRR, RICE, JTBD, North Star)
+7. "justificativa": Justificativa da classificação
+8. "palavras_chave": Lista das palavras-chave mais relevantes da iniciativa
 
-Responda APENAS com o JSON válido, sem texto adicional.
+O output deve ser em formato JSON. Evite explicações adicionais fora desse formato.
         """
         
         try:

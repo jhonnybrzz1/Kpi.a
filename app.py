@@ -2,6 +2,9 @@ import streamlit as st
 import os
 from datetime import datetime
 import traceback
+import PyPDF2
+import docx
+from io import BytesIO
 
 from services.mistral_service import MistralService
 from services.openai_service import OpenAIService
@@ -54,6 +57,37 @@ def check_api_keys():
     
     return True
 
+def process_uploaded_file(uploaded_file):
+    """Processa arquivo PRD carregado pelo usuário"""
+    try:
+        file_type = uploaded_file.type
+        content = ""
+        
+        if file_type == "application/pdf":
+            # Processa PDF
+            pdf_reader = PyPDF2.PdfReader(BytesIO(uploaded_file.read()))
+            for page in pdf_reader.pages:
+                content += page.extract_text() + "\n"
+                
+        elif file_type == "text/plain":
+            # Processa arquivo TXT
+            content = str(uploaded_file.read(), "utf-8")
+            
+        elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            # Processa arquivo DOCX
+            doc = docx.Document(BytesIO(uploaded_file.read()))
+            content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+            
+        elif uploaded_file.name.endswith('.md'):
+            # Processa arquivo Markdown
+            content = str(uploaded_file.read(), "utf-8")
+            
+        return content.strip()
+        
+    except Exception as e:
+        st.warning(f"Erro ao processar arquivo: {str(e)}")
+        return ""
+
 # Interface principal
 def main():
     if not check_api_keys():
@@ -67,20 +101,19 @@ def main():
         placeholder="Ex: Quero criar uma funcionalidade de notificação de estoque baixo no sistema POS para alertar gerentes quando produtos atingem quantidade mínima..."
     )
     
+    # Upload de documento PRD (opcional)
+    st.subheader("📎 Anexar Documento PRD (Opcional)")
+    uploaded_file = st.file_uploader(
+        "Faça upload de um documento PRD para análise mais detalhada:",
+        type=['pdf', 'txt', 'docx', 'md'],
+        help="Formatos aceitos: PDF, TXT, DOCX, Markdown"
+    )
+    
     # Campos opcionais
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        responsible = st.text_input(
-            "👤 Responsável (opcional)",
-            placeholder="Nome do responsável pelo projeto"
-        )
-    
-    with col2:
-        company = st.text_input(
-            "🏢 Empresa (opcional)",
-            placeholder="Nome da empresa"
-        )
+    responsible = st.text_input(
+        "👤 Responsável (opcional)",
+        placeholder="Nome do responsável pelo projeto"
+    )
     
     # Botão de processamento
     if st.button("🚀 Gerar Análise MetricFlow", type="primary", use_container_width=True):
@@ -116,7 +149,17 @@ def main():
                 status_text.text("📊 Gerando métricas e KPIs com GPT-4...")
                 progress_bar.progress(50)
                 
-                metrics_analysis = openai_service.generate_metrics(clean_input, context_analysis)
+                # Processamento do arquivo PRD se fornecido
+                prd_content = ""
+                if uploaded_file is not None:
+                    prd_content = process_uploaded_file(uploaded_file)
+                
+                # Combina descrição e PRD para análise de métricas
+                full_context = clean_input
+                if prd_content:
+                    full_context += f"\n\nConteúdo do PRD anexado:\n{prd_content}"
+                
+                metrics_analysis = openai_service.generate_metrics(full_context, context_analysis)
                 
                 # Etapa 3: Compilação dos dados
                 status_text.text("📝 Compilando relatório...")
@@ -125,8 +168,8 @@ def main():
                 # Preparação dos dados para o PDF
                 report_data = {
                     "initiative_description": clean_input,
+                    "prd_content": prd_content,
                     "responsible": responsible or "Não informado",
-                    "company": company or "Não informado",
                     "date": datetime.now().strftime("%d/%m/%Y"),
                     "context_analysis": context_analysis,
                     "metrics_analysis": metrics_analysis

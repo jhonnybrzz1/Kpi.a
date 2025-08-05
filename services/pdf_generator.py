@@ -74,7 +74,9 @@ class PDFGenerator:
             '{{OKRS_LIST}}': okrs_html,
             '{{FRAMEWORKS_LIST}}': frameworks_html,
             '{{IMPLEMENTATION_DETAILS}}': implementation_html,
-            '{{RISKS_LIST}}': self._format_risks(metrics.get('riscos_metricas', []))
+            '{{RISKS_LIST}}': self._format_risks(metrics.get('riscos_metricas', [])),
+            '{{NEXT_STEPS_LIST}}': self._format_next_steps(metrics.get('proximos_passos', [])),
+            '{{PRD_CONTENT}}': data.get('prd_content', '')
         }
         
         # Aplica as substituições
@@ -176,6 +178,18 @@ class PDFGenerator:
         html = "<ul>"
         for risk in risks:
             html += f"<li>{risk}</li>"
+        html += "</ul>"
+        
+        return html
+    
+    def _format_next_steps(self, steps: list) -> str:
+        """Formata lista de próximos passos para HTML"""
+        if not steps:
+            return "<p>Nenhum próximo passo específico foi gerado.</p>"
+        
+        html = "<ul>"
+        for step in steps:
+            html += f"<li>{step}</li>"
         html += "</ul>"
         
         return html
