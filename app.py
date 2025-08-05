@@ -60,32 +60,64 @@ def check_api_keys():
 def process_uploaded_file(uploaded_file):
     """Processa arquivo PRD carregado pelo usuário"""
     try:
+        if uploaded_file is None:
+            return ""
+            
         file_type = uploaded_file.type
+        file_name = uploaded_file.name.lower()
         content = ""
         
-        if file_type == "application/pdf":
+        # Reset file pointer
+        uploaded_file.seek(0)
+        file_bytes = uploaded_file.read()
+        
+        if file_type == "application/pdf" or file_name.endswith('.pdf'):
             # Processa PDF
-            pdf_reader = PyPDF2.PdfReader(BytesIO(uploaded_file.read()))
-            for page in pdf_reader.pages:
-                content += page.extract_text() + "\n"
+            try:
+                pdf_reader = PyPDF2.PdfReader(BytesIO(file_bytes))
+                for page in pdf_reader.pages:
+                    content += page.extract_text() + "\n"
+            except Exception as pdf_error:
+                st.warning(f"Erro ao ler PDF: {str(pdf_error)}")
+                return ""
                 
-        elif file_type == "text/plain":
+        elif file_type == "text/plain" or file_name.endswith('.txt'):
             # Processa arquivo TXT
-            content = str(uploaded_file.read(), "utf-8")
+            try:
+                content = file_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                content = file_bytes.decode('latin-1')
             
-        elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        elif (file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+              or file_name.endswith('.docx')):
             # Processa arquivo DOCX
-            doc = docx.Document(BytesIO(uploaded_file.read()))
-            content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+            try:
+                doc = docx.Document(BytesIO(file_bytes))
+                content = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+            except Exception as docx_error:
+                st.warning(f"Erro ao ler DOCX: {str(docx_error)}")
+                return ""
             
-        elif uploaded_file.name.endswith('.md'):
+        elif file_name.endswith('.md'):
             # Processa arquivo Markdown
-            content = str(uploaded_file.read(), "utf-8")
+            try:
+                content = file_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                content = file_bytes.decode('latin-1')
+        
+        else:
+            st.warning(f"Tipo de arquivo não suportado: {file_type}")
+            return ""
             
-        return content.strip()
+        if content.strip():
+            st.success(f"✅ Arquivo {uploaded_file.name} processado com sucesso!")
+            return content.strip()
+        else:
+            st.warning("⚠️ Arquivo parece estar vazio ou não foi possível extrair texto.")
+            return ""
         
     except Exception as e:
-        st.warning(f"Erro ao processar arquivo: {str(e)}")
+        st.error(f"❌ Erro ao processar arquivo: {str(e)}")
         return ""
 
 # Interface principal
@@ -103,10 +135,26 @@ def main():
     
     # Upload de documento PRD (opcional)
     st.subheader("📎 Anexar Documento PRD (Opcional)")
+    
+    with st.expander("ℹ️ Como anexar documentos", expanded=False):
+        st.markdown("""
+        **Formatos aceitos:**
+        - 📄 **PDF**: Documentos de especificação
+        - 📝 **TXT**: Arquivos de texto simples  
+        - 📄 **DOCX**: Documentos do Word
+        - 📝 **MD**: Arquivos Markdown
+        
+        **Tamanho máximo:** 200MB por arquivo
+        
+        **Dica:** O conteúdo do documento será combinado com sua descrição para uma análise mais completa e precisa.
+        """)
+    
     uploaded_file = st.file_uploader(
-        "Faça upload de um documento PRD para análise mais detalhada:",
+        "Selecione um arquivo PRD:",
         type=['pdf', 'txt', 'docx', 'md'],
-        help="Formatos aceitos: PDF, TXT, DOCX, Markdown"
+        help="Clique ou arraste um arquivo aqui",
+        accept_multiple_files=False,
+        key="prd_uploader"
     )
     
     # Campos opcionais
