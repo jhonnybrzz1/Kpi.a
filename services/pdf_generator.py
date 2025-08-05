@@ -57,7 +57,6 @@ class PDFGenerator:
         
         # Substituições no template
         replacements = {
-            '{{COMPANY}}': data.get('company', 'Não informado'),
             '{{RESPONSIBLE}}': data.get('responsible', 'Não informado'),
             '{{DATE}}': data.get('date', datetime.now().strftime('%d/%m/%Y')),
             '{{INITIATIVE}}': data.get('initiative_description', ''),
@@ -75,8 +74,7 @@ class PDFGenerator:
             '{{FRAMEWORKS_LIST}}': frameworks_html,
             '{{IMPLEMENTATION_DETAILS}}': implementation_html,
             '{{RISKS_LIST}}': self._format_risks(metrics.get('riscos_metricas', [])),
-            '{{NEXT_STEPS_LIST}}': self._format_next_steps(metrics.get('proximos_passos', [])),
-            '{{PRD_CONTENT}}': data.get('prd_content', '')
+            '{{NEXT_STEPS_LIST}}': self._format_next_steps(metrics.get('proximos_passos', []))
         }
         
         # Aplica as substituições
