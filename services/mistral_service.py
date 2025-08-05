@@ -23,22 +23,31 @@ class MistralService:
         """
         
         prompt = f"""
-Você é um especialista em produto com foco em análise de contexto. Sua função é interpretar descrições livres de iniciativas e classificá-las para uso em decisões de produto e sugestão de métricas.
-
-INICIATIVA: {initiative_text}
+Você é um especialista em produto com foco em análise de contexto. Sua função é interpretar descrições livres de iniciativas e classificá-las para uso em decisões de produto e sugestão de métricas. 
 
 Extraia e retorne os seguintes campos, com base no texto fornecido:
 
-1. "tipo": Tipo da Iniciativa (ex: funcionalidade, campanha, melhoria, experimento)
-2. "objetivo": Objetivo Principal do Negócio (ex: aquisição, retenção, receita, engajamento, conversão)
-3. "etapa_funil": Etapa principal do funil AARRR relacionada à iniciativa
-4. "complexidade": Complexidade esperada (baixa, média, alta)
-5. "area_impacto": Áreas de Impacto (ex: tecnologia, vendas, UX, dados, marketing)
-6. "frameworks_aplicaveis": Frameworks que melhor se aplicam (ex: HEART, AARRR, RICE, JTBD, North Star)
-7. "justificativa": Justificativa da classificação
-8. "palavras_chave": Lista das palavras-chave mais relevantes da iniciativa
+INICIATIVA: {initiative_text}
+
+1. Tipo da Iniciativa (ex: funcionalidade, campanha, melhoria, experimento)
+2. Objetivo Principal do Negócio (ex: aquisição, retenção, receita, engajamento, conversão)
+3. Etapa principal do funil AARRR relacionada à iniciativa
+4. Complexidade esperada (baixa, média, alta)
+5. Áreas de Impacto (ex: tecnologia, vendas, UX, dados, marketing)
+6. Frameworks que melhor se aplicam (ex: HEART, AARRR, RICE, JTBD, North Star)
+7. Justificativa da classificação
 
 O output deve ser em formato JSON. Evite explicações adicionais fora desse formato.
+
+{{
+  "tipo": "",
+  "objetivo": "",
+  "etapa_funil": "",
+  "complexidade": "",
+  "area_impacto": [],
+  "frameworks_aplicaveis": [],
+  "justificativa": ""
+}}
         """
         
         try:

@@ -26,7 +26,7 @@ class OpenAIService:
         """
         
         prompt = f"""
-Você é um assistente de produto especialista em métricas, OKRs e análise estratégica de funcionalidades. Seu papel é receber um contexto estruturado de uma iniciativa e gerar uma análise completa.
+Você é um assistente de produto especialista em métricas, OKRs e análise estratégica de funcionalidades. Seu papel é receber um contexto estruturado de uma iniciativa e gerar uma análise completa com:
 
 INICIATIVA: {initiative_text}
 
@@ -38,61 +38,53 @@ CONTEXTO ANALISADO:
 - Áreas de impacto: {', '.join(context.get('area_impacto', []))}
 - Frameworks aplicáveis: {', '.join(context.get('frameworks_aplicaveis', []))}
 
-Gere uma análise completa em JSON com:
+1. **North Star Metric (NSM):**
+   - Nome da NSM
+   - Descrição
+   - Justificativa da escolha
 
+2. **KPIs Principais:**
+   Para cada métrica:
+   - Nome
+   - Descrição
+   - Fórmula de cálculo
+   - Frequência recomendada
+   - Meta sugerida
+   - Área responsável
+
+3. **OKRs Sugeridos:**
+   Para cada OKR:
+   - Objetivo (O)
+   - 3 Key Results (KRs)
+   - Prazo sugerido
+
+4. **Frameworks Aplicáveis:**
+   Explique quais frameworks de produto se aplicam à iniciativa e como contribuem para análise ou priorização.
+
+5. **Recomendações Técnicas de Medição:**
+   - Ferramentas sugeridas (ex: GA4, Mixpanel, Amplitude)
+   - Eventos que devem ser configurados
+   - Campos recomendados para rastreio
+   - Dashboards ou relatórios a serem criados
+
+6. **Riscos e Considerações:**
+   Liste até 2 riscos operacionais ou técnicos relevantes.
+
+7. **Próximos Passos:**
+   Sugira entre 4 e 6 ações práticas para implementação da medição e adoção dos OKRs.
+
+Formate sua resposta de forma clara e segmentada, com títulos e tabelas. A resposta será exportada para um PDF final.
+
+Responda em JSON válido com esta estrutura exata:
 {{
-  "north_star_metric": {{
-    "nome": "Nome da NSM",
-    "descricao": "Descrição detalhada",
-    "justificativa": "Justificativa da escolha"
-  }},
-  "kpis": [
-    {{
-      "nome": "Nome do KPI",
-      "descricao": "Descrição detalhada",
-      "formula": "Fórmula de cálculo",
-      "frequencia_medicao": "Frequência recomendada",
-      "meta_sugerida": "Meta sugerida",
-      "responsavel_area": "Área responsável"
-    }}
-  ],
-  "okrs": [
-    {{
-      "objetivo": "Objetivo (O)",
-      "key_results": [
-        "Key Result 1 quantificado",
-        "Key Result 2 quantificado", 
-        "Key Result 3 quantificado"
-      ],
-      "prazo": "Prazo sugerido"
-    }}
-  ],
-  "frameworks_aplicaveis": [
-    {{
-      "nome": "Nome do framework",
-      "aplicacao": "Como aplicar e contribuir para análise"
-    }}
-  ],
-  "implementacao_medicao": {{
-    "ferramentas_sugeridas": ["GA4", "Mixpanel", "Amplitude"],
-    "eventos_configurar": ["Lista de eventos a configurar"],
-    "campos_rastreio": ["Campos recomendados para rastreio"],
-    "dashboards": "Dashboards ou relatórios a serem criados"
-  }},
-  "riscos_metricas": [
-    "Risco operacional ou técnico 1",
-    "Risco operacional ou técnico 2"
-  ],
-  "proximos_passos": [
-    "Ação prática 1 para implementação",
-    "Ação prática 2 para medição",
-    "Ação prática 3 para adoção dos OKRs",
-    "Ação prática 4"
-  ]
+  "north_star_metric": {{"nome": "", "descricao": "", "justificativa": ""}},
+  "kpis": [{{"nome": "", "descricao": "", "formula": "", "frequencia_medicao": "", "meta_sugerida": "", "responsavel_area": ""}}],
+  "okrs": [{{"objetivo": "", "key_results": ["", "", ""], "prazo": ""}}],
+  "frameworks_aplicaveis": [{{"nome": "", "aplicacao": ""}}],
+  "implementacao_medicao": {{"ferramentas_sugeridas": [], "eventos_configurar": [], "campos_rastreio": [], "dashboards": ""}},
+  "riscos_metricas": ["", ""],
+  "proximos_passos": ["", "", "", ""]
 }}
-
-Formate sua resposta de forma clara e segmentada. As métricas devem ser SMART e práticas.
-Responda APENAS com o JSON válido, sem texto adicional.
         """
         
         try:
