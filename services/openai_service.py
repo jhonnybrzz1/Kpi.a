@@ -104,7 +104,11 @@ CONTEXTO ANALISADO:
             
             parsed_json = json.loads(content)
             print(f"OpenAI parsed successfully: {parsed_json}")
-            return parsed_json
+            
+            # Normaliza a estrutura JSON se necessário
+            normalized = self._normalize_openai_response(parsed_json)
+            print(f"OpenAI normalized: {normalized}")
+            return normalized
             
         except json.JSONDecodeError as e:
             # Retorna estrutura básica em caso de erro de JSON
@@ -142,6 +146,75 @@ CONTEXTO ANALISADO:
             }
         except Exception as e:
             raise Exception(f"Erro no serviço OpenAI: {str(e)}")
+    
+    def _normalize_openai_response(self, data):
+        """Normaliza a resposta do OpenAI para garantir estrutura consistente"""
+        
+        # Se já está no formato correto, retorna como está
+        if all(key in data for key in ['north_star_metric', 'kpis', 'okrs']):
+            return data
+        
+        # Mapeia campos com nomes variados para o formato esperado
+        normalized = {}
+        
+        # North Star Metric
+        nsm = data.get('North_Star_Metric') or data.get('north_star_metric', {})
+        if isinstance(nsm, dict):
+            normalized['north_star_metric'] = {
+                'nome': nsm.get('Nome') or nsm.get('nome', ''),
+                'descricao': nsm.get('Descrição') or nsm.get('descricao', ''),
+                'justificativa': nsm.get('Justificativa_da_escolha') or nsm.get('justificativa', '')
+            }
+        
+        # KPIs
+        kpis = data.get('KPIs_Principais') or data.get('kpis', [])
+        normalized['kpis'] = []
+        for kpi in kpis:
+            normalized['kpis'].append({
+                'nome': kpi.get('Nome') or kpi.get('nome', ''),
+                'descricao': kpi.get('Descrição') or kpi.get('descricao', ''),
+                'formula': kpi.get('Fórmula_de_cálculo') or kpi.get('formula', ''),
+                'frequencia_medicao': kpi.get('Frequência_recomendada') or kpi.get('frequencia_medicao', ''),
+                'meta_sugerida': kpi.get('Meta_sugerida') or kpi.get('meta_sugerida', ''),
+                'responsavel_area': kpi.get('Área_responsável') or kpi.get('responsavel_area', '')
+            })
+        
+        # OKRs
+        okrs = data.get('OKRs_Sugeridos') or data.get('okrs', [])
+        normalized['okrs'] = []
+        for okr in okrs:
+            normalized['okrs'].append({
+                'objetivo': okr.get('Objetivo') or okr.get('objetivo', ''),
+                'key_results': okr.get('Key_Results') or okr.get('key_results', []),
+                'prazo': okr.get('Prazo_sugerido') or okr.get('prazo', '')
+            })
+        
+        # Frameworks
+        frameworks = data.get('Frameworks_Aplicáveis') or data.get('frameworks_aplicaveis', {})
+        if isinstance(frameworks, dict):
+            normalized['frameworks_aplicaveis'] = [{
+                'nome': frameworks.get('Nome') or '',
+                'aplicacao': frameworks.get('Descrição') or frameworks.get('Contribuição') or ''
+            }]
+        elif isinstance(frameworks, list):
+            normalized['frameworks_aplicaveis'] = frameworks
+        
+        # Implementação
+        impl = data.get('Recomendações_Técnicas_de_Medição') or data.get('implementacao_medicao', {})
+        normalized['implementacao_medicao'] = {
+            'ferramentas_sugeridas': impl.get('Ferramentas_sugeridas') or impl.get('ferramentas_sugeridas', []),
+            'eventos_configurar': impl.get('Eventos_que_devem_ser_configurados') or impl.get('eventos_configurar', []),
+            'campos_rastreio': impl.get('Campos_recomendados_para_rastreio') or impl.get('campos_rastreio', []),
+            'dashboards': impl.get('Dashboards_ou_relatórios_a_serem_criados') or impl.get('dashboards', '')
+        }
+        
+        # Riscos
+        normalized['riscos_metricas'] = data.get('Riscos_e_Considerações') or data.get('riscos_metricas', [])
+        
+        # Próximos passos
+        normalized['proximos_passos'] = data.get('Próximos_Passos') or data.get('proximos_passos', [])
+        
+        return normalized
     
     def generate_executive_summary(self, initiative_text: str, context: Dict[str, Any], 
                                  metrics: Dict[str, Any]) -> str:

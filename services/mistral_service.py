@@ -76,11 +76,16 @@ INICIATIVA: {initiative_text}
                 try:
                     parsed_json = json.loads(content)
                     print(f"Mistral parsed successfully: {parsed_json}")
-                    return parsed_json
+                    
+                    # Normaliza a estrutura se necessário
+                    normalized = self._normalize_mistral_response(parsed_json)
+                    print(f"Mistral normalized: {normalized}")
+                    return normalized
                 except json.JSONDecodeError:
                     # Se falhar, extrai JSON do texto
                     print(f"JSON parse failed, trying extraction")
-                    return self._extract_json_from_text(content)
+                    extracted = self._extract_json_from_text(content)
+                    return self._normalize_mistral_response(extracted)
             
             else:
                 raise Exception(f"Erro na API Mistral: {response.status_code} - {response.text}")
