@@ -128,8 +128,8 @@ def main():
     # Campo de entrada
     st.header("📝 Descreva sua Iniciativa")
     user_input = st.text_area(
-        "Digite uma descrição detalhada da sua iniciativa, projeto ou funcionalidade:",
-        height=150,
+        "Digite uma descrição da sua iniciativa OU anexe um documento PRD abaixo:",
+        height=120,
         placeholder="Ex: Quero criar uma funcionalidade de notificação de estoque baixo no sistema POS para alertar gerentes quando produtos atingem quantidade mínima..."
     )
     
@@ -146,7 +146,7 @@ def main():
         
         **Tamanho máximo:** 200MB por arquivo
         
-        **Dica:** O conteúdo do documento será combinado com sua descrição para uma análise mais completa e precisa.
+        **Dica:** Se você anexar um PRD, ele será usado como contexto principal. A descrição acima se torna opcional neste caso.
         """)
     
     uploaded_file = st.file_uploader(
@@ -157,6 +157,11 @@ def main():
         key="prd_uploader"
     )
     
+    # Mostra status do arquivo anexado
+    if uploaded_file is not None:
+        st.info(f"📎 Arquivo anexado: **{uploaded_file.name}** ({uploaded_file.size} bytes)")
+        st.success("✅ O documento PRD será usado como base principal para análise!")
+    
     # Campos opcionais
     responsible = st.text_input(
         "👤 Responsável (opcional)",
@@ -166,8 +171,13 @@ def main():
     # Botão de processamento
     if st.button("🚀 Gerar Análise MetricFlow", type="primary", use_container_width=True):
         
-        # Validação da entrada
-        validation_result = validate_input(user_input)
+        # Processa arquivo PRD primeiro se fornecido
+        prd_content = ""
+        if uploaded_file is not None:
+            prd_content = process_uploaded_file(uploaded_file)
+        
+        # Validação da entrada (considerando se há arquivo PRD)
+        validation_result = validate_input(user_input, bool(prd_content))
         if not validation_result["valid"]:
             st.error(f"❌ {validation_result['message']}")
             return
@@ -191,21 +201,21 @@ def main():
                 status_text.text("🧠 Analisando contexto com Mistral...")
                 progress_bar.progress(25)
                 
-                context_analysis = mistral_service.analyze_context(clean_input)
+                # Prepara contexto para análise
+                if prd_content:
+                    # Se há PRD, usa ele como contexto principal
+                    full_context = f"Documento PRD anexado:\n{prd_content}"
+                    if clean_input.strip():
+                        full_context += f"\n\nDescrição adicional fornecida:\n{clean_input}"
+                else:
+                    # Se não há PRD, usa apenas a descrição
+                    full_context = clean_input
+                
+                context_analysis = mistral_service.analyze_context(full_context)
                 
                 # Etapa 2: Geração de métricas com OpenAI
                 status_text.text("📊 Gerando métricas e KPIs com GPT-4...")
                 progress_bar.progress(50)
-                
-                # Processamento do arquivo PRD se fornecido
-                prd_content = ""
-                if uploaded_file is not None:
-                    prd_content = process_uploaded_file(uploaded_file)
-                
-                # Combina descrição e PRD para análise de métricas
-                full_context = clean_input
-                if prd_content:
-                    full_context += f"\n\nConteúdo do PRD anexado:\n{prd_content}"
                 
                 metrics_analysis = openai_service.generate_metrics(full_context, context_analysis)
                 
@@ -214,9 +224,13 @@ def main():
                 progress_bar.progress(75)
                 
                 # Preparação dos dados para o PDF
+                initiative_description = prd_content if prd_content else clean_input
+                if prd_content and clean_input.strip():
+                    initiative_description = f"PRD: {prd_content[:500]}...\n\nDescrição: {clean_input}"
+                
                 report_data = {
-                    "initiative_description": clean_input,
-                    "prd_content": prd_content,
+                    "initiative_description": initiative_description,
+                    "has_prd": bool(prd_content),
                     "responsible": responsible or "Não informado",
                     "date": datetime.now().strftime("%d/%m/%Y"),
                     "context_analysis": context_analysis,
