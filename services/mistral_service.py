@@ -23,11 +23,9 @@ class MistralService:
         """
         
         prompt = f"""
-Você é um especialista em produto com foco em análise de contexto. Sua função é interpretar descrições livres de iniciativas e classificá-las para uso em decisões de produto e sugestão de métricas. 
+Você é um especialista em produto com foco em análise de contexto. Sua função é interpretar descrições livres de iniciativas e classificá-las para uso em decisões de produto e sugestão de métricas.
 
 Extraia e retorne os seguintes campos, com base no texto fornecido:
-
-INICIATIVA: {initiative_text}
 
 1. Tipo da Iniciativa (ex: funcionalidade, campanha, melhoria, experimento)
 2. Objetivo Principal do Negócio (ex: aquisição, retenção, receita, engajamento, conversão)
@@ -39,15 +37,7 @@ INICIATIVA: {initiative_text}
 
 O output deve ser em formato JSON. Evite explicações adicionais fora desse formato.
 
-{{
-  "tipo": "",
-  "objetivo": "",
-  "etapa_funil": "",
-  "complexidade": "",
-  "area_impacto": [],
-  "frameworks_aplicaveis": [],
-  "justificativa": ""
-}}
+INICIATIVA: {initiative_text}
         """
         
         try:

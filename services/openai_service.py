@@ -28,16 +28,6 @@ class OpenAIService:
         prompt = f"""
 Você é um assistente de produto especialista em métricas, OKRs e análise estratégica de funcionalidades. Seu papel é receber um contexto estruturado de uma iniciativa e gerar uma análise completa com:
 
-INICIATIVA: {initiative_text}
-
-CONTEXTO ANALISADO:
-- Tipo: {context.get('tipo', 'N/A')}
-- Objetivo: {context.get('objetivo', 'N/A')}
-- Etapa do funil: {context.get('etapa_funil', 'N/A')}
-- Complexidade: {context.get('complexidade', 'N/A')}
-- Áreas de impacto: {', '.join(context.get('area_impacto', []))}
-- Frameworks aplicáveis: {', '.join(context.get('frameworks_aplicaveis', []))}
-
 1. **North Star Metric (NSM):**
    - Nome da NSM
    - Descrição
@@ -75,16 +65,15 @@ CONTEXTO ANALISADO:
 
 Formate sua resposta de forma clara e segmentada, com títulos e tabelas. A resposta será exportada para um PDF final.
 
-Responda em JSON válido com esta estrutura exata:
-{{
-  "north_star_metric": {{"nome": "", "descricao": "", "justificativa": ""}},
-  "kpis": [{{"nome": "", "descricao": "", "formula": "", "frequencia_medicao": "", "meta_sugerida": "", "responsavel_area": ""}}],
-  "okrs": [{{"objetivo": "", "key_results": ["", "", ""], "prazo": ""}}],
-  "frameworks_aplicaveis": [{{"nome": "", "aplicacao": ""}}],
-  "implementacao_medicao": {{"ferramentas_sugeridas": [], "eventos_configurar": [], "campos_rastreio": [], "dashboards": ""}},
-  "riscos_metricas": ["", ""],
-  "proximos_passos": ["", "", "", ""]
-}}
+INICIATIVA: {initiative_text}
+
+CONTEXTO ANALISADO:
+- Tipo: {context.get('tipo', 'N/A')}
+- Objetivo: {context.get('objetivo', 'N/A')}
+- Etapa do funil: {context.get('etapa_funil', 'N/A')}
+- Complexidade: {context.get('complexidade', 'N/A')}
+- Áreas de impacto: {', '.join(context.get('area_impacto', []))}
+- Frameworks aplicáveis: {', '.join(context.get('frameworks_aplicaveis', []))}
         """
         
         try:

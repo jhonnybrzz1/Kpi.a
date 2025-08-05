@@ -54,6 +54,7 @@ class PDFGenerator:
         okrs_html = self._format_okrs(metrics.get('okrs', []))
         frameworks_html = self._format_frameworks(metrics.get('frameworks_aplicaveis', []))
         implementation_html = self._format_implementation(metrics.get('implementacao_medicao', {}))
+        next_steps_html = self._format_next_steps(metrics.get('proximos_passos', []))
         
         # Substituições no template
         replacements = {
@@ -74,7 +75,7 @@ class PDFGenerator:
             '{{FRAMEWORKS_LIST}}': frameworks_html,
             '{{IMPLEMENTATION_DETAILS}}': implementation_html,
             '{{RISKS_LIST}}': self._format_risks(metrics.get('riscos_metricas', [])),
-            '{{NEXT_STEPS_LIST}}': self._format_next_steps(metrics.get('proximos_passos', []))
+            '{{NEXT_STEPS_LIST}}': next_steps_html
         }
         
         # Aplica as substituições
