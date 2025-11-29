@@ -19,127 +19,141 @@
                 color: #666;
             }
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             line-height: 1.6;
             color: #333;
             background: white;
+            margin: 0;
+            padding: 0;
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 2cm;
             border-bottom: 2px solid #007acc;
             padding-bottom: 1cm;
         }
-        
+
         .header h1 {
             color: #007acc;
             font-size: 2.5em;
             margin: 0;
             font-weight: bold;
         }
-        
+
         .header h2 {
             color: #666;
             font-size: 1.2em;
             margin: 0.5em 0;
             font-weight: normal;
         }
-        
+
         .metadata {
             background: #f8f9fa;
             padding: 1em;
             border-radius: 8px;
             margin: 1.5em 0;
             border-left: 4px solid #007acc;
+            page-break-inside: avoid;
         }
-        
+
         .metadata table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .metadata td {
             padding: 0.5em;
             border-bottom: 1px solid #ddd;
         }
-        
+
         .metadata td:first-child {
             font-weight: bold;
             width: 30%;
             color: #007acc;
         }
-        
+
         .section {
             margin: 2em 0;
-            page-break-inside: avoid;
+            page-break-inside: auto;
+            clear: both;
         }
-        
+
         .section h2 {
             color: #007acc;
             border-bottom: 2px solid #007acc;
             padding-bottom: 0.5em;
             margin-bottom: 1em;
             font-size: 1.5em;
+            page-break-after: avoid;
+            break-after: avoid;
         }
-        
+
         .section h3 {
             color: #0056b3;
             margin-top: 1.5em;
             margin-bottom: 0.8em;
             font-size: 1.2em;
+            page-break-after: avoid;
+            break-after: avoid;
         }
-        
+
         .section h4 {
             color: #004494;
             margin-top: 1.2em;
             margin-bottom: 0.6em;
             font-size: 1.1em;
+            page-break-after: avoid;
+            break-after: avoid;
         }
-        
+
         .initiative-box {
             background: #e8f4fd;
             padding: 1.5em;
             border-radius: 8px;
             border-left: 4px solid #007acc;
             margin: 1em 0;
+            page-break-inside: avoid;
         }
-        
+
         .context-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1em;
             margin: 1em 0;
+            page-break-inside: avoid;
         }
-        
+
         .context-item {
             background: #f8f9fa;
             padding: 1em;
             border-radius: 6px;
             border: 1px solid #dee2e6;
+            page-break-inside: avoid;
         }
-        
+
         .context-item strong {
             color: #007acc;
             display: block;
             margin-bottom: 0.5em;
         }
-        
+
         .north-star {
             background: linear-gradient(135deg, #fff3cd, #ffeaa7);
             padding: 1.5em;
             border-radius: 8px;
             border-left: 4px solid #f39c12;
             margin: 1em 0;
+            page-break-inside: avoid;
         }
-        
+
         .north-star h4 {
             color: #e67e22;
             margin-top: 0;
         }
-        
+
         .kpi-item, .okr-item, .framework-item {
             background: #f8f9fa;
             padding: 1.2em;
@@ -147,32 +161,38 @@
             border-radius: 6px;
             border-left: 4px solid #28a745;
             page-break-inside: avoid;
+            clear: both;
         }
-        
+
         .kpi-item h4, .okr-item h4, .framework-item h4 {
             color: #155724;
             margin-top: 0;
             margin-bottom: 0.8em;
         }
-        
+
+        .kpi-item p, .okr-item p, .framework-item p {
+            margin: 0.5em 0;
+        }
+
         .implementation-details {
             background: #d1ecf1;
             padding: 1.5em;
             border-radius: 8px;
             border-left: 4px solid #17a2b8;
             margin: 1em 0;
+            page-break-inside: avoid;
         }
-        
+
         .implementation-details h4 {
             color: #0c5460;
             margin-top: 1em;
             margin-bottom: 0.5em;
         }
-        
+
         .implementation-details h4:first-child {
             margin-top: 0;
         }
-        
+
         code {
             background: #f1f3f4;
             padding: 0.2em 0.4em;
@@ -180,50 +200,55 @@
             font-family: 'Courier New', monospace;
             font-size: 0.9em;
             color: #d63384;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
-        
+
         ul, ol {
             padding-left: 1.5em;
-        }
-        
-        li {
             margin: 0.5em 0;
         }
-        
+
+        li {
+            margin: 0.3em 0;
+        }
+
         .risks {
             background: #f8d7da;
             padding: 1.5em;
             border-radius: 8px;
             border-left: 4px solid #dc3545;
             margin: 1em 0;
+            page-break-inside: avoid;
         }
-        
+
         .risks h3 {
             color: #721c24;
             margin-top: 0;
         }
-        
+
         .risks ul {
             margin: 0;
         }
-        
+
         .page-break {
             page-break-before: always;
         }
-        
+
         .summary {
             background: #d4edda;
             padding: 1.5em;
             border-radius: 8px;
             border-left: 4px solid #28a745;
             margin: 2em 0;
+            page-break-inside: avoid;
         }
-        
+
         .summary h3 {
             color: #155724;
             margin-top: 0;
         }
-        
+
         .footer {
             margin-top: 3em;
             padding-top: 1em;
@@ -231,15 +256,29 @@
             text-align: center;
             color: #666;
             font-size: 0.9em;
+            page-break-before: auto;
         }
-        
+
+        /* Melhorias específicas para impressão */
         @media print {
             .section {
-                page-break-inside: avoid;
+                page-break-inside: auto;
+                break-inside: auto;
             }
-            
+
             .kpi-item, .okr-item, .framework-item {
                 page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .context-grid {
+                display: block;
+            }
+
+            .context-grid > div {
+                display: block;
+                width: 100%;
+                margin-bottom: 1em;
             }
         }
     </style>
@@ -250,7 +289,7 @@
         <h1>🧠 MetricFlow AI</h1>
         <h2>Relatório de Análise de Métricas, KPIs e OKRs</h2>
     </div>
-    
+
     <!-- Metadados -->
     <div class="metadata">
         <table>
@@ -268,7 +307,7 @@
             </tr>
         </table>
     </div>
-    
+
     <!-- Seção 1: Descrição da Iniciativa -->
     <div class="section">
         <h2>📋 1. Descrição da Iniciativa</h2>
@@ -276,37 +315,37 @@
             <p>{{INITIATIVE}}</p>
         </div>
     </div>
-    
+
     <!-- Seção 2: Análise de Contexto -->
     <div class="section">
         <h2>🧠 2. Análise de Contexto (Mistral AI)</h2>
-        
+
         <div class="context-grid">
             <div class="context-item">
                 <strong>Tipo da Iniciativa:</strong>
-                {{CONTEXT_TYPE}}
+                <p>{{CONTEXT_TYPE}}</p>
             </div>
             <div class="context-item">
                 <strong>Objetivo Principal:</strong>
-                {{CONTEXT_OBJECTIVE}}
+                <p>{{CONTEXT_OBJECTIVE}}</p>
             </div>
             <div class="context-item">
                 <strong>Etapa do Funil (AARRR):</strong>
-                {{CONTEXT_FUNNEL}}
+                <p>{{CONTEXT_FUNNEL}}</p>
             </div>
             <div class="context-item">
                 <strong>Complexidade:</strong>
-                {{CONTEXT_COMPLEXITY}}
+                <p>{{CONTEXT_COMPLEXITY}}</p>
             </div>
         </div>
-        
+
         <h3>Áreas de Impacto</h3>
         <p>{{CONTEXT_AREAS}}</p>
-        
+
         <h3>Justificativa da Classificação</h3>
         <p>{{CONTEXT_JUSTIFICATION}}</p>
     </div>
-    
+
     <!-- Seção 3: North Star Metric -->
     <div class="section">
         <h2>🌟 3. North Star Metric</h2>
@@ -316,31 +355,31 @@
             <p><strong>Justificativa:</strong> {{NORTH_STAR_JUST}}</p>
         </div>
     </div>
-    
+
     <!-- Seção 4: KPIs Principais -->
     <div class="section page-break">
         <h2>📊 4. KPIs Principais</h2>
         {{KPIS_LIST}}
     </div>
-    
+
     <!-- Seção 5: OKRs Sugeridos -->
     <div class="section">
         <h2>🎯 5. OKRs Sugeridos</h2>
         {{OKRS_LIST}}
     </div>
-    
+
     <!-- Seção 6: Frameworks Aplicáveis -->
     <div class="section">
         <h2>🔧 6. Frameworks Aplicáveis</h2>
         {{FRAMEWORKS_LIST}}
     </div>
-    
+
     <!-- Seção 7: Implementação e Medição -->
     <div class="section page-break">
         <h2>⚙️ 7. Implementação e Medição</h2>
         {{IMPLEMENTATION_DETAILS}}
     </div>
-    
+
     <!-- Seção 8: Riscos e Considerações -->
     <div class="section">
         <h2>⚠️ 8. Riscos e Considerações</h2>
@@ -349,7 +388,7 @@
             {{RISKS_LIST}}
         </div>
     </div>
-    
+
     <!-- Resumo Executivo -->
     <div class="section">
         <h2>📝 9. Próximos Passos</h2>

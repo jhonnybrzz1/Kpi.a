@@ -1,0 +1,29 @@
+# Arquivos de cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Pasta de cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+*$pyc.class
+
+# Ambientes virtuais
+venv/
+env/
+ENV/
+
+# Arquivos de saída do PDF
+*.pdf
+
+# Arquivos temporários
+test_pdf.py
+teste_relatorio_metricflow.pdf
+
+# Outros arquivos temporários
+.DS_Store
+Thumbs.db
