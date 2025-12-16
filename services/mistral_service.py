@@ -9,7 +9,7 @@ class MistralService:
     def __init__(self):
         self.api_key = os.getenv("MISTRAL_API_KEY", "default_mistral_key")
         self.base_url = "https://api.mistral.ai/v1/chat/completions"
-        self.model = "mistral-large-latest"
+        self.model = "mistral-large-2512"
     
     def analyze_context(self, initiative_text: str) -> Dict[str, Any]:
         """
