@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def retry_with_backoff(max_retries=3, base_delay=1):
     """Decorator to retry function calls with exponential backoff"""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -22,11 +23,16 @@ def retry_with_backoff(max_retries=3, base_delay=1):
                     if attempt == max_retries - 1:
                         logger.error("Failed after %d attempts: %s", max_retries, str(e))
                         raise
-                    delay = base_delay * (2 ** attempt)
-                    logger.warning("Attempt %d failed, retrying in %ds: %s", attempt + 1, delay, str(e))
+                    delay = base_delay * (2**attempt)
+                    logger.warning(
+                        "Attempt %d failed, retrying in %ds: %s", attempt + 1, delay, str(e)
+                    )
                     time.sleep(delay)
+
         return wrapper
+
     return decorator
+
 
 class OpenAIService:
     """Service for OpenAI GPT-4 integration"""
@@ -42,7 +48,7 @@ class OpenAIService:
         # Using gpt-4.1-mini for better stability and cost efficiency
         self.model = "gpt-4.1-mini"
         logger.info("OpenAIService initialized with model: %s", self.model)
-    
+
     @retry_with_backoff(max_retries=3, base_delay=2)
     def generate_metrics(self, initiative_text: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -55,7 +61,7 @@ class OpenAIService:
         Returns:
             Dict with suggested metrics, KPIs and OKRs
         """
-        
+
         prompt = f"""
 Você é um especialista em métricas de produto, KPIs e OKRs. Com base na iniciativa e contexto fornecidos, 
 gere uma análise completa de métricas.
@@ -63,11 +69,11 @@ gere uma análise completa de métricas.
 INICIATIVA: {initiative_text}
 
 CONTEXTO ANALISADO:
-- Tipo: {context.get('tipo', 'N/A')}
-- Objetivo: {context.get('objetivo', 'N/A')}
-- Etapa do funil: {context.get('etapa_funil', 'N/A')}
-- Complexidade: {context.get('complexidade', 'N/A')}
-- Áreas de impacto: {', '.join(context.get('area_impacto', []))}
+- Tipo: {context.get("tipo", "N/A")}
+- Objetivo: {context.get("objetivo", "N/A")}
+- Etapa do funil: {context.get("etapa_funil", "N/A")}
+- Complexidade: {context.get("complexidade", "N/A")}
+- Áreas de impacto: {", ".join(context.get("area_impacto", []))}
 
 Gere uma resposta em JSON com a seguinte estrutura:
 
@@ -120,7 +126,7 @@ Inclua pelo menos 3-5 KPIs principais e 1-2 OKRs completos.
 
 Responda APENAS com o JSON válido, sem texto adicional.
         """
-        
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -128,17 +134,14 @@ Responda APENAS com o JSON válido, sem texto adicional.
                     {
                         "role": "system",
                         "content": "Você é um especialista em métricas de produto e análise de dados. "
-                                 "Responda sempre em JSON válido conforme solicitado."
+                        "Responda sempre em JSON válido conforme solicitado.",
                     },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "user", "content": prompt},
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.4,
                 max_tokens=2500,
-                timeout=60.0
+                timeout=60.0,
             )
 
             content = response.choices[0].message.content
@@ -163,8 +166,11 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 if field not in data:
                     raise ValueError(f"Required field missing in response: {field}")
 
-            logger.info("Successfully generated metrics with %d KPIs and %d OKRs",
-                       len(data.get("kpis", [])), len(data.get("okrs", [])))
+            logger.info(
+                "Successfully generated metrics with %d KPIs and %d OKRs",
+                len(data.get("kpis", [])),
+                len(data.get("okrs", [])),
+            )
             return data
 
         except json.JSONDecodeError as e:
@@ -175,20 +181,21 @@ Responda APENAS com o JSON válido, sem texto adicional.
             raise Exception(f"Error in OpenAI service: {str(e)}")
 
     @retry_with_backoff(max_retries=3, base_delay=2)
-    def generate_executive_summary(self, initiative_text: str, context: Dict[str, Any], 
-                                 metrics: Dict[str, Any]) -> str:
+    def generate_executive_summary(
+        self, initiative_text: str, context: Dict[str, Any], metrics: Dict[str, Any]
+    ) -> str:
         """
         Gera um resumo executivo da análise
-        
+
         Args:
             initiative_text: Texto da iniciativa
             context: Contexto analisado
             metrics: Métricas geradas
-            
+
         Returns:
             String com resumo executivo
         """
-        
+
         prompt = f"""
 Com base na iniciativa e análises realizadas, escreva um resumo executivo profissional 
 que explique de forma clara e concisa:
@@ -204,23 +211,20 @@ MÉTRICAS: {json.dumps(metrics, indent=2, ensure_ascii=False)}
 
 O resumo deve ter entre 200-400 palavras, ser profissional e focado em resultados de negócio.
         """
-        
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {
                         "role": "system",
-                        "content": "Você é um consultor de negócios especializado em redação executiva."
+                        "content": "Você é um consultor de negócios especializado em redação executiva.",
                     },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.3,
                 max_tokens=600,
-                timeout=30.0
+                timeout=30.0,
             )
 
             content = response.choices[0].message.content

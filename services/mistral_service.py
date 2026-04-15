@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def retry_with_backoff(max_retries=3, base_delay=1):
     """Decorator to retry function calls with exponential backoff"""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -22,11 +23,16 @@ def retry_with_backoff(max_retries=3, base_delay=1):
                     if attempt == max_retries - 1:
                         logger.error("Failed after %d attempts: %s", max_retries, str(e))
                         raise
-                    delay = base_delay * (2 ** attempt)
-                    logger.warning("Attempt %d failed, retrying in %ds: %s", attempt + 1, delay, str(e))
+                    delay = base_delay * (2**attempt)
+                    logger.warning(
+                        "Attempt %d failed, retrying in %ds: %s", attempt + 1, delay, str(e)
+                    )
                     time.sleep(delay)
+
         return wrapper
+
     return decorator
+
 
 class MistralService:
     """Service for Mistral AI API integration"""
@@ -53,7 +59,7 @@ class MistralService:
         Returns:
             Dict containing context analysis
         """
-        
+
         prompt = f"""
 Você é um especialista em análise de projetos e métricas de negócio. 
 Analise a seguinte iniciativa e classifique-a nos critérios abaixo.
@@ -72,31 +78,21 @@ Forneça uma análise estruturada em JSON com os seguintes campos:
 
 Responda APENAS com o JSON válido, sem texto adicional.
         """
-        
+
         try:
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
 
             payload = {
                 "model": self.model,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
+                "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.3,
-                "max_tokens": 1000
+                "max_tokens": 1000,
             }
 
-            response = requests.post(
-                self.base_url,
-                headers=headers,
-                json=payload,
-                timeout=30
-            )
+            response = requests.post(self.base_url, headers=headers, json=payload, timeout=30)
 
             if response.status_code == 200:
                 result = response.json()
@@ -119,18 +115,18 @@ Responda APENAS com o JSON válido, sem texto adicional.
             raise Exception(f"Connection error with Mistral: {str(e)}")
         except Exception as e:
             raise Exception(f"Error in Mistral service: {str(e)}")
-    
+
     def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
         """Extrai JSON de texto que pode conter outros caracteres"""
         try:
             # Procura por { e } para extrair JSON
-            start = text.find('{')
-            end = text.rfind('}') + 1
-            
+            start = text.find("{")
+            end = text.rfind("}") + 1
+
             if start != -1 and end != 0:
                 json_str = text[start:end]
                 return json.loads(json_str)
-            
+
             # Fallback: retorna estrutura padrão
             return {
                 "tipo": "funcionalidade",
@@ -139,9 +135,9 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 "complexidade": "media",
                 "area_impacto": ["tecnologia"],
                 "justificativa": "Análise automática baseada no texto fornecido.",
-                "palavras_chave": ["iniciativa", "projeto", "implementação"]
+                "palavras_chave": ["iniciativa", "projeto", "implementação"],
             }
-            
+
         except Exception:
             # Retorna estrutura padrão em caso de erro
             return {
@@ -151,5 +147,5 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 "complexidade": "media",
                 "area_impacto": ["tecnologia"],
                 "justificativa": "Não foi possível processar a análise de contexto.",
-                "palavras_chave": ["iniciativa", "projeto"]
+                "palavras_chave": ["iniciativa", "projeto"],
             }
