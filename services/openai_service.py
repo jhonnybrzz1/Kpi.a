@@ -9,9 +9,8 @@ class OpenAIService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY", "default_openai_key")
         self.client = OpenAI(api_key=self.api_key)
-        # Updated to use gpt-4o-mini for better stability and cost efficiency
-        # gpt-4o-mini supports structured outputs and is more reliable
-        self.model = "gpt-4o-mini"
+        # Using gpt-4.1-mini for better stability and cost efficiency
+        self.model = "gpt-4.1-mini"
     
     def generate_metrics(self, initiative_text: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
