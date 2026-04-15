@@ -1,25 +1,57 @@
 import os
 import requests
 import json
+import time
+import logging
 from typing import Dict, Any
+from functools import wraps
+
+# Configure module logger
+logger = logging.getLogger(__name__)
+
+
+def retry_with_backoff(max_retries=3, base_delay=1):
+    """Decorator to retry function calls with exponential backoff"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        logger.error("Failed after %d attempts: %s", max_retries, str(e))
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning("Attempt %d failed, retrying in %ds: %s", attempt + 1, delay, str(e))
+                    time.sleep(delay)
+        return wrapper
+    return decorator
 
 class MistralService:
-    """Serviço para integração com a API Mistral AI"""
-    
+    """Service for Mistral AI API integration"""
+
     def __init__(self):
-        self.api_key = os.getenv("MISTRAL_API_KEY", "default_mistral_key")
+        self.api_key = os.getenv("MISTRAL_API_KEY")
+        if not self.api_key:
+            raise ValueError(
+                "MISTRAL_API_KEY not configured. "
+                "Please set the environment variable before using this service."
+            )
         self.base_url = "https://api.mistral.ai/v1/chat/completions"
         self.model = "mistral-large-2512"
-    
+        logger.info("MistralService initialized with model: %s", self.model)
+
+    @retry_with_backoff(max_retries=3, base_delay=2)
     def analyze_context(self, initiative_text: str) -> Dict[str, Any]:
         """
-        Analisa o contexto da iniciativa usando Mistral AI
-        
+        Analyzes initiative context using Mistral AI
+
         Args:
-            initiative_text: Texto descrevendo a iniciativa
-            
+            initiative_text: Text describing the initiative
+
         Returns:
-            Dict contendo análise de contexto
+            Dict containing context analysis
         """
         
         prompt = f"""
@@ -46,7 +78,7 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json"
             }
-            
+
             payload = {
                 "model": self.model,
                 "messages": [
@@ -58,32 +90,35 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 "temperature": 0.3,
                 "max_tokens": 1000
             }
-            
+
             response = requests.post(
                 self.base_url,
                 headers=headers,
                 json=payload,
                 timeout=30
             )
-            
+
             if response.status_code == 200:
                 result = response.json()
                 content = result["choices"][0]["message"]["content"]
-                
-                # Tenta fazer parse do JSON
+
+                # Try to parse JSON
                 try:
-                    return json.loads(content)
+                    data = json.loads(content)
+                    logger.info("Successfully analyzed initiative context")
+                    return data
                 except json.JSONDecodeError:
-                    # Se falhar, extrai JSON do texto
+                    # If fails, extract JSON from text
+                    logger.warning("JSON parse failed, extracting from text")
                     return self._extract_json_from_text(content)
-            
+
             else:
-                raise Exception(f"Erro na API Mistral: {response.status_code} - {response.text}")
-                
+                raise Exception(f"Mistral API error: {response.status_code} - {response.text}")
+
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Erro de conexão com Mistral: {str(e)}")
+            raise Exception(f"Connection error with Mistral: {str(e)}")
         except Exception as e:
-            raise Exception(f"Erro no serviço Mistral: {str(e)}")
+            raise Exception(f"Error in Mistral service: {str(e)}")
     
     def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
         """Extrai JSON de texto que pode conter outros caracteres"""

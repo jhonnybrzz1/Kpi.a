@@ -10,6 +10,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: STREAMLIT_ENVIRONMENT
+        value: production
       - key: OPENAI_API_KEY
         sync: false
       - key: MISTRAL_API_KEY

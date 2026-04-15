@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import logging
 from datetime import datetime
 import traceback
 
@@ -8,6 +9,29 @@ from services.openai_service import OpenAIService
 from services.pdf_generator import PDFGenerator
 from utils.validation import validate_input, sanitize_text
 from utils.examples import INITIATIVE_EXAMPLES
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Cached service instances for performance
+@st.cache_resource
+def get_mistral_service():
+    """Get cached MistralService instance"""
+    return MistralService()
+
+@st.cache_resource
+def get_openai_service():
+    """Get cached OpenAIService instance"""
+    return OpenAIService()
+
+@st.cache_resource
+def get_pdf_generator():
+    """Get cached PDFGenerator instance"""
+    return PDFGenerator()
 
 # Configuração da página
 st.set_page_config(
@@ -316,10 +340,10 @@ def main():
             """, unsafe_allow_html=True)
             
             try:
-                # Inicialização dos serviços
-                mistral_service = MistralService()
-                openai_service = OpenAIService()
-                pdf_generator = PDFGenerator()
+                # Get cached service instances
+                mistral_service = get_mistral_service()
+                openai_service = get_openai_service()
+                pdf_generator = get_pdf_generator()
                 
                 # Progress bar melhorada
                 progress_container = st.container()
@@ -448,17 +472,23 @@ def main():
                     """, unsafe_allow_html=True)
                 
             except Exception as e:
-                # Tratamento de erro melhorado
+                # Log full error details server-side
+                logger.error("Processing error: %s", str(e), exc_info=True)
+
+                # User-friendly error message
                 st.markdown("""
                 <div style="background: #f8d7da; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #dc3545; margin: 1rem 0;">
                     <h3 style="color: #721c24; margin-top: 0;">❌ Erro durante o Processamento</h3>
                     <p>Ocorreu um problema ao processar sua solicitação. Tente novamente em alguns instantes.</p>
                 </div>
                 """, unsafe_allow_html=True)
-                
-                with st.expander("🔍 **Detalhes Técnicos do Erro**"):
-                    st.error(f"Erro: {str(e)}")
-                    st.code(traceback.format_exc(), language="python")
+
+                # Show technical details only in development
+                is_production = os.getenv("STREAMLIT_ENVIRONMENT", "development") == "production"
+                if not is_production:
+                    with st.expander("🔍 **Detalhes Técnicos do Erro**"):
+                        st.error(f"Erro: {str(e)}")
+                        st.code(traceback.format_exc(), language="python")
                     
                 # Sugestões de solução
                 st.markdown("""

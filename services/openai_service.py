@@ -1,27 +1,59 @@
 import os
 import json
+import time
+import logging
+from functools import wraps
 from openai import OpenAI
 from typing import Dict, Any, List
 
+# Configure module logger
+logger = logging.getLogger(__name__)
+
+
+def retry_with_backoff(max_retries=3, base_delay=1):
+    """Decorator to retry function calls with exponential backoff"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        logger.error("Failed after %d attempts: %s", max_retries, str(e))
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning("Attempt %d failed, retrying in %ds: %s", attempt + 1, delay, str(e))
+                    time.sleep(delay)
+        return wrapper
+    return decorator
+
 class OpenAIService:
-    """Serviço para integração com OpenAI GPT-4"""
-    
+    """Service for OpenAI GPT-4 integration"""
+
     def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY", "default_openai_key")
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError(
+                "OPENAI_API_KEY not configured. "
+                "Please set the environment variable before using this service."
+            )
         self.client = OpenAI(api_key=self.api_key)
         # Using gpt-4.1-mini for better stability and cost efficiency
         self.model = "gpt-4.1-mini"
+        logger.info("OpenAIService initialized with model: %s", self.model)
     
+    @retry_with_backoff(max_retries=3, base_delay=2)
     def generate_metrics(self, initiative_text: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Gera métricas, KPIs e OKRs baseados na iniciativa e contexto
-        
+        Generates metrics, KPIs and OKRs based on initiative and context
+
         Args:
-            initiative_text: Texto da iniciativa
-            context: Contexto analisado pelo Mistral
-            
+            initiative_text: Initiative text
+            context: Context analyzed by Mistral
+
         Returns:
-            Dict com métricas, KPIs e OKRs sugeridos
+            Dict with suggested metrics, KPIs and OKRs
         """
         
         prompt = f"""
@@ -105,14 +137,15 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.4,
-                max_tokens=2500
+                max_tokens=2500,
+                timeout=60.0
             )
 
             content = response.choices[0].message.content
             if content is None:
-                raise Exception("Resposta vazia do OpenAI")
-            
-            # Limpar o conteúdo removendo possíveis blocos de código markdown
+                raise Exception("Empty response from OpenAI")
+
+            # Clean content by removing possible markdown code blocks
             content = content.strip()
             if content.startswith("```json"):
                 content = content[7:]
@@ -121,14 +154,27 @@ Responda APENAS com o JSON válido, sem texto adicional.
             if content.endswith("```"):
                 content = content[:-3]
             content = content.strip()
-            
-            return json.loads(content)
+
+            data = json.loads(content)
+
+            # Validate required schema fields
+            required_fields = ["north_star_metric", "kpis", "okrs"]
+            for field in required_fields:
+                if field not in data:
+                    raise ValueError(f"Required field missing in response: {field}")
+
+            logger.info("Successfully generated metrics with %d KPIs and %d OKRs",
+                       len(data.get("kpis", [])), len(data.get("okrs", [])))
+            return data
 
         except json.JSONDecodeError as e:
-            raise Exception(f"Erro ao decodificar resposta JSON do OpenAI: {str(e)}")
+            raise Exception(f"Error decoding JSON response from OpenAI: {str(e)}")
+        except ValueError as e:
+            raise Exception(f"Invalid response schema: {str(e)}")
         except Exception as e:
-            raise Exception(f"Erro no serviço OpenAI: {str(e)}")
-    
+            raise Exception(f"Error in OpenAI service: {str(e)}")
+
+    @retry_with_backoff(max_retries=3, base_delay=2)
     def generate_executive_summary(self, initiative_text: str, context: Dict[str, Any], 
                                  metrics: Dict[str, Any]) -> str:
         """
@@ -173,11 +219,14 @@ O resumo deve ter entre 200-400 palavras, ser profissional e focado em resultado
                     }
                 ],
                 temperature=0.3,
-                max_tokens=600
+                max_tokens=600,
+                timeout=30.0
             )
-            
+
             content = response.choices[0].message.content
+            logger.info("Executive summary generated successfully")
             return content if content is not None else "Não foi possível gerar o resumo executivo."
-            
+
         except Exception as e:
+            logger.error("Error generating executive summary: %s", str(e))
             return f"Não foi possível gerar o resumo executivo. Erro: {str(e)}"
