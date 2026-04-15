@@ -9,9 +9,9 @@ class OpenAIService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY", "default_openai_key")
         self.client = OpenAI(api_key=self.api_key)
-        # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # do not change this unless explicitly requested by the user
-        self.model = "gpt-4o"
+        # Updated to use gpt-4o-mini for better stability and cost efficiency
+        # gpt-4o-mini supports structured outputs and is more reliable
+        self.model = "gpt-4o-mini"
     
     def generate_metrics(self, initiative_text: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -108,12 +108,23 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 temperature=0.4,
                 max_tokens=2500
             )
-            
+
             content = response.choices[0].message.content
             if content is None:
                 raise Exception("Resposta vazia do OpenAI")
-            return json.loads(content)
             
+            # Limpar o conteúdo removendo possíveis blocos de código markdown
+            content = content.strip()
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+            return json.loads(content)
+
         except json.JSONDecodeError as e:
             raise Exception(f"Erro ao decodificar resposta JSON do OpenAI: {str(e)}")
         except Exception as e:
