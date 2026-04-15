@@ -379,15 +379,19 @@ def main():
                 with st.expander("🧠 Análise de Contexto (Mistral)", expanded=True):
                     if context_analysis:
                         col1, col2, col3 = st.columns(3)
-                        
+
                         with col1:
                             st.metric("Tipo", context_analysis.get("tipo", "N/A"))
-                        
+
                         with col2:
                             st.metric("Objetivo", context_analysis.get("objetivo", "N/A"))
-                        
+
                         with col3:
-                            st.metric("Etapa AARRR", context_analysis.get("etapa_funil", "N/A"))
+                            # Converte lista para string se necessário
+                            etapa = context_analysis.get("etapa_funil", "N/A")
+                            if isinstance(etapa, list):
+                                etapa = ", ".join(etapa)
+                            st.metric("Etapa AARRR", etapa)
                         
                         if context_analysis.get("justificativa"):
                             st.write("**Justificativa:**")
