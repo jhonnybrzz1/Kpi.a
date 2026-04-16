@@ -1,6 +1,7 @@
+# MetricFlow AI Dependencies
 openai>=1.98.0
 pydantic>=2.7.0
-pyyaml>=6.0.1
+PyYAML>=6.0.1
 requests>=2.32.4
 streamlit>=1.47.1
 weasyprint>=66.0
