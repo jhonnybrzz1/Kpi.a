@@ -152,29 +152,29 @@ class PDFGenerator:
         return html_str
 
     def _format_implementation(self, implementation: dict) -> str:
-        """Formata detalhes de implementação para HTML"""
+        """Formata detalhes de implementação para HTML com sanitização"""
         if not implementation:
             return "<p>Detalhes de implementação não especificados.</p>"
 
         tools = implementation.get("ferramentas_sugeridas", [])
         tools_html = ""
         for tool in tools:
-            tools_html += f"<li>{tool}</li>"
+            tools_html += f"<li>{html.escape(str(tool))}</li>"
 
-        html = f"""
+        html_str = f"""
         <div class="implementation-details">
             <h4>Ferramentas Sugeridas:</h4>
             <ul>{tools_html}</ul>
-            
+
             <h4>Setup de Tracking:</h4>
-            <p>{implementation.get("setup_tracking", "Não especificado")}</p>
-            
+            <p>{html.escape(str(implementation.get("setup_tracking", "Não especificado")))}</p>
+
             <h4>Dashboards:</h4>
-            <p>{implementation.get("dashboards", "Não especificado")}</p>
+            <p>{html.escape(str(implementation.get("dashboards", "Não especificado")))}</p>
         </div>
         """
 
-        return html
+        return html_str
 
     def _format_risks(self, risks: list) -> str:
         """Format risk list for HTML with sanitization"""

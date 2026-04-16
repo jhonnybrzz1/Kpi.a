@@ -6,6 +6,11 @@ import logging
 from typing import Dict, Any
 from functools import wraps
 
+from pydantic import ValidationError
+
+from config import get_prompt
+from services.schemas import ContextAnalysis
+
 # Configure module logger
 logger = logging.getLogger(__name__)
 
@@ -59,25 +64,9 @@ class MistralService:
         Returns:
             Dict containing context analysis
         """
-
-        prompt = f"""
-Você é um especialista em análise de projetos e métricas de negócio. 
-Analise a seguinte iniciativa e classifique-a nos critérios abaixo.
-
-INICIATIVA: {initiative_text}
-
-Forneça uma análise estruturada em JSON com os seguintes campos:
-
-1. "tipo": Classifique como uma das opções: "funcionalidade", "processo", "produto", "estrategia"
-2. "objetivo": Classifique o objetivo principal como: "aquisicao", "ativacao", "retencao", "receita", "engajamento"  
-3. "etapa_funil": Identifique a etapa do funil AARRR: "aquisicao", "ativacao", "retencao", "receita", "referencia"
-4. "complexidade": Avalie como: "baixa", "media", "alta"
-5. "area_impacto": Lista de áreas impactadas (ex: ["vendas", "operacoes", "tecnologia"])
-6. "justificativa": Texto explicando a classificação e contexto identificado
-7. "palavras_chave": Lista das palavras-chave mais relevantes da iniciativa
-
-Responda APENAS com o JSON válido, sem texto adicional.
-        """
+        # Load prompt from configuration
+        prompt_template = get_prompt("mistral", "analyze_context", "user")
+        prompt = prompt_template.format(initiative_text=initiative_text)
 
         try:
             headers = {
@@ -101,12 +90,15 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 # Try to parse JSON
                 try:
                     data = json.loads(content)
-                    logger.info("Successfully analyzed initiative context")
-                    return data
                 except json.JSONDecodeError:
                     # If fails, extract JSON from text
                     logger.warning("JSON parse failed, extracting from text")
-                    return self._extract_json_from_text(content)
+                    data = self._extract_json_from_text(content)
+
+                # Validate required fields
+                data = self._validate_and_complete_response(data)
+                logger.info("Successfully analyzed initiative context")
+                return data
 
             else:
                 raise Exception(f"Mistral API error: {response.status_code} - {response.text}")
@@ -116,10 +108,25 @@ Responda APENAS com o JSON válido, sem texto adicional.
         except Exception as e:
             raise Exception(f"Error in Mistral service: {str(e)}")
 
-    def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
-        """Extrai JSON de texto que pode conter outros caracteres"""
+    def _validate_and_complete_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate response using Pydantic schema and fill missing fields with defaults"""
         try:
-            # Procura por { e } para extrair JSON
+            validated = ContextAnalysis.model_validate(data)
+            return validated.model_dump()
+        except ValidationError as e:
+            logger.warning("Validation error, using defaults for invalid fields: %s", str(e))
+            # Try to create with available data, Pydantic will use defaults
+            validated = ContextAnalysis.model_validate(data, strict=False)
+            return validated.model_dump()
+
+    def _get_default_response(self) -> Dict[str, Any]:
+        """Returns default response structure using Pydantic model"""
+        return ContextAnalysis().model_dump()
+
+    def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
+        """Extract JSON from text that may contain other characters"""
+        try:
+            # Look for { and } to extract JSON
             start = text.find("{")
             end = text.rfind("}") + 1
 
@@ -127,25 +134,10 @@ Responda APENAS com o JSON válido, sem texto adicional.
                 json_str = text[start:end]
                 return json.loads(json_str)
 
-            # Fallback: retorna estrutura padrão
-            return {
-                "tipo": "funcionalidade",
-                "objetivo": "operacao",
-                "etapa_funil": "ativacao",
-                "complexidade": "media",
-                "area_impacto": ["tecnologia"],
-                "justificativa": "Análise automática baseada no texto fornecido.",
-                "palavras_chave": ["iniciativa", "projeto", "implementação"],
-            }
+            # Fallback: return default structure
+            logger.warning("Could not find JSON in response text")
+            return self._get_default_response()
 
-        except Exception:
-            # Retorna estrutura padrão em caso de erro
-            return {
-                "tipo": "funcionalidade",
-                "objetivo": "operacao",
-                "etapa_funil": "ativacao",
-                "complexidade": "media",
-                "area_impacto": ["tecnologia"],
-                "justificativa": "Não foi possível processar a análise de contexto.",
-                "palavras_chave": ["iniciativa", "projeto"],
-            }
+        except Exception as e:
+            logger.warning("Error extracting JSON from text: %s", str(e))
+            return self._get_default_response()

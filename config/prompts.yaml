@@ -1,0 +1,111 @@
+# MetricFlow AI - Configuração de Prompts
+# Este arquivo centraliza todos os prompts utilizados pelos serviços de IA
+# Facilita manutenção, versionamento e testes A/B
+
+mistral:
+  analyze_context:
+    system: |
+      Você é um especialista em análise de projetos e métricas de negócio.
+    user: |
+      Analise a seguinte iniciativa e classifique-a nos critérios abaixo.
+
+      INICIATIVA: {initiative_text}
+
+      Forneça uma análise estruturada em JSON com os seguintes campos:
+
+      1. "tipo": Classifique como uma das opções: "funcionalidade", "processo", "produto", "estrategia"
+      2. "objetivo": Classifique o objetivo principal como: "aquisicao", "ativacao", "retencao", "receita", "engajamento"
+      3. "etapa_funil": Identifique a etapa do funil AARRR: "aquisicao", "ativacao", "retencao", "receita", "referencia"
+      4. "complexidade": Avalie como: "baixa", "media", "alta"
+      5. "area_impacto": Lista de áreas impactadas (ex: ["vendas", "operacoes", "tecnologia"])
+      6. "justificativa": Texto explicando a classificação e contexto identificado
+      7. "palavras_chave": Lista das palavras-chave mais relevantes da iniciativa
+
+      Responda APENAS com o JSON válido, sem texto adicional.
+
+openai:
+  generate_metrics:
+    system: |
+      Você é um especialista em métricas de produto e análise de dados.
+      Responda sempre em JSON válido conforme solicitado.
+    user: |
+      Você é um especialista em métricas de produto, KPIs e OKRs. Com base na iniciativa e contexto fornecidos,
+      gere uma análise completa de métricas.
+
+      INICIATIVA: {initiative_text}
+
+      CONTEXTO ANALISADO:
+      - Tipo: {context_tipo}
+      - Objetivo: {context_objetivo}
+      - Etapa do funil: {context_etapa_funil}
+      - Complexidade: {context_complexidade}
+      - Áreas de impacto: {context_areas}
+
+      Gere uma resposta em JSON com a seguinte estrutura:
+
+      {{
+        "north_star_metric": {{
+          "nome": "Nome da métrica principal",
+          "descricao": "Descrição detalhada da North Star Metric",
+          "justificativa": "Por que esta é a métrica mais importante"
+        }},
+        "kpis": [
+          {{
+            "nome": "Nome do KPI",
+            "descricao": "Descrição do KPI",
+            "formula": "Fórmula de cálculo",
+            "frequencia_medicao": "diária/semanal/mensal",
+            "meta_sugerida": "Meta numérica sugerida",
+            "responsavel_area": "Área responsável pela medição"
+          }}
+        ],
+        "okrs": [
+          {{
+            "objetivo": "Objetivo claro e inspirador",
+            "key_results": [
+              "Key Result 1 com meta quantificada",
+              "Key Result 2 com meta quantificada",
+              "Key Result 3 com meta quantificada"
+            ],
+            "prazo": "Prazo sugerido (ex: trimestral)"
+          }}
+        ],
+        "frameworks_aplicaveis": [
+          {{
+            "nome": "Nome do framework (ex: HEART, RICE, AARRR)",
+            "aplicacao": "Como aplicar este framework na iniciativa"
+          }}
+        ],
+        "implementacao_medicao": {{
+          "ferramentas_sugeridas": ["Lista de ferramentas para medição"],
+          "setup_tracking": "Instruções para configurar o tracking",
+          "dashboards": "Sugestões de dashboards e visualizações"
+        }},
+        "riscos_metricas": [
+          "Risco 1 relacionado às métricas",
+          "Risco 2 que pode afetar a medição"
+        ]
+      }}
+
+      Seja específico e prático. As métricas devem ser SMART (Específicas, Mensuráveis, Atingíveis, Relevantes, Temporais).
+      Inclua pelo menos 3-5 KPIs principais e 1-2 OKRs completos.
+
+      Responda APENAS com o JSON válido, sem texto adicional.
+
+  executive_summary:
+    system: |
+      Você é um consultor de negócios especializado em redação executiva.
+    user: |
+      Com base na iniciativa e análises realizadas, escreva um resumo executivo profissional
+      que explique de forma clara e concisa:
+
+      1. O que é a iniciativa
+      2. Por que as métricas escolhidas são relevantes
+      3. Como implementar a medição
+      4. Benefícios esperados
+
+      INICIATIVA: {initiative_text}
+      CONTEXTO: {context}
+      MÉTRICAS: {metrics}
+
+      O resumo deve ter entre 200-400 palavras, ser profissional e focado em resultados de negócio.

@@ -4,7 +4,12 @@ import time
 import logging
 from functools import wraps
 from openai import OpenAI
-from typing import Dict, Any, List
+from typing import Dict, Any
+
+from pydantic import ValidationError
+
+from config import get_prompt
+from services.schemas import MetricsAnalysis
 
 # Configure module logger
 logger = logging.getLogger(__name__)
@@ -61,81 +66,28 @@ class OpenAIService:
         Returns:
             Dict with suggested metrics, KPIs and OKRs
         """
+        # Load prompt from configuration
+        prompt_template = get_prompt("openai", "generate_metrics", "user")
+        system_prompt = get_prompt("openai", "generate_metrics", "system")
 
-        prompt = f"""
-Você é um especialista em métricas de produto, KPIs e OKRs. Com base na iniciativa e contexto fornecidos, 
-gere uma análise completa de métricas.
+        # Format context areas
+        areas = context.get("area_impacto", [])
+        areas_str = ", ".join(areas) if isinstance(areas, list) else str(areas)
 
-INICIATIVA: {initiative_text}
-
-CONTEXTO ANALISADO:
-- Tipo: {context.get("tipo", "N/A")}
-- Objetivo: {context.get("objetivo", "N/A")}
-- Etapa do funil: {context.get("etapa_funil", "N/A")}
-- Complexidade: {context.get("complexidade", "N/A")}
-- Áreas de impacto: {", ".join(context.get("area_impacto", []))}
-
-Gere uma resposta em JSON com a seguinte estrutura:
-
-{{
-  "north_star_metric": {{
-    "nome": "Nome da métrica principal",
-    "descricao": "Descrição detalhada da North Star Metric",
-    "justificativa": "Por que esta é a métrica mais importante"
-  }},
-  "kpis": [
-    {{
-      "nome": "Nome do KPI",
-      "descricao": "Descrição do KPI",
-      "formula": "Fórmula de cálculo",
-      "frequencia_medicao": "diária/semanal/mensal",
-      "meta_sugerida": "Meta numérica sugerida",
-      "responsavel_area": "Área responsável pela medição"
-    }}
-  ],
-  "okrs": [
-    {{
-      "objetivo": "Objetivo claro e inspirador",
-      "key_results": [
-        "Key Result 1 com meta quantificada",
-        "Key Result 2 com meta quantificada",
-        "Key Result 3 com meta quantificada"
-      ],
-      "prazo": "Prazo sugerido (ex: trimestral)"
-    }}
-  ],
-  "frameworks_aplicaveis": [
-    {{
-      "nome": "Nome do framework (ex: HEART, RICE, AARRR)",
-      "aplicacao": "Como aplicar este framework na iniciativa"
-    }}
-  ],
-  "implementacao_medicao": {{
-    "ferramentas_sugeridas": ["Lista de ferramentas para medição"],
-    "setup_tracking": "Instruções para configurar o tracking",
-    "dashboards": "Sugestões de dashboards e visualizações"
-  }},
-  "riscos_metricas": [
-    "Risco 1 relacionado às métricas",
-    "Risco 2 que pode afetar a medição"
-  ]
-}}
-
-Seja específico e prático. As métricas devem ser SMART (Específicas, Mensuráveis, Atingíveis, Relevantes, Temporais).
-Inclua pelo menos 3-5 KPIs principais e 1-2 OKRs completos.
-
-Responda APENAS com o JSON válido, sem texto adicional.
-        """
+        prompt = prompt_template.format(
+            initiative_text=initiative_text,
+            context_tipo=context.get("tipo", "N/A"),
+            context_objetivo=context.get("objetivo", "N/A"),
+            context_etapa_funil=context.get("etapa_funil", "N/A"),
+            context_complexidade=context.get("complexidade", "N/A"),
+            context_areas=areas_str,
+        )
 
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "Você é um especialista em métricas de produto e análise de dados. "
-                        "Responda sempre em JSON válido conforme solicitado.",
-                    },
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ],
                 response_format={"type": "json_object"},
@@ -160,11 +112,15 @@ Responda APENAS com o JSON válido, sem texto adicional.
 
             data = json.loads(content)
 
-            # Validate required schema fields
-            required_fields = ["north_star_metric", "kpis", "okrs"]
-            for field in required_fields:
-                if field not in data:
-                    raise ValueError(f"Required field missing in response: {field}")
+            # Validate response using Pydantic schema
+            try:
+                validated = MetricsAnalysis.model_validate(data)
+                data = validated.model_dump()
+            except ValidationError as e:
+                logger.warning("Validation warning, some fields may use defaults: %s", str(e))
+                # Still try to use the data, Pydantic will fill defaults
+                validated = MetricsAnalysis.model_validate(data, strict=False)
+                data = validated.model_dump()
 
             logger.info(
                 "Successfully generated metrics with %d KPIs and %d OKRs",
@@ -175,7 +131,7 @@ Responda APENAS com o JSON válido, sem texto adicional.
 
         except json.JSONDecodeError as e:
             raise Exception(f"Error decoding JSON response from OpenAI: {str(e)}")
-        except ValueError as e:
+        except ValidationError as e:
             raise Exception(f"Invalid response schema: {str(e)}")
         except Exception as e:
             raise Exception(f"Error in OpenAI service: {str(e)}")
@@ -185,41 +141,31 @@ Responda APENAS com o JSON válido, sem texto adicional.
         self, initiative_text: str, context: Dict[str, Any], metrics: Dict[str, Any]
     ) -> str:
         """
-        Gera um resumo executivo da análise
+        Generates an executive summary of the analysis
 
         Args:
-            initiative_text: Texto da iniciativa
-            context: Contexto analisado
-            metrics: Métricas geradas
+            initiative_text: Initiative text
+            context: Analyzed context
+            metrics: Generated metrics
 
         Returns:
-            String com resumo executivo
+            String with executive summary
         """
+        # Load prompts from configuration
+        prompt_template = get_prompt("openai", "executive_summary", "user")
+        system_prompt = get_prompt("openai", "executive_summary", "system")
 
-        prompt = f"""
-Com base na iniciativa e análises realizadas, escreva um resumo executivo profissional 
-que explique de forma clara e concisa:
-
-1. O que é a iniciativa
-2. Por que as métricas escolhidas são relevantes
-3. Como implementar a medição
-4. Benefícios esperados
-
-INICIATIVA: {initiative_text}
-CONTEXTO: {json.dumps(context, indent=2, ensure_ascii=False)}
-MÉTRICAS: {json.dumps(metrics, indent=2, ensure_ascii=False)}
-
-O resumo deve ter entre 200-400 palavras, ser profissional e focado em resultados de negócio.
-        """
+        prompt = prompt_template.format(
+            initiative_text=initiative_text,
+            context=json.dumps(context, indent=2, ensure_ascii=False),
+            metrics=json.dumps(metrics, indent=2, ensure_ascii=False),
+        )
 
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "Você é um consultor de negócios especializado em redação executiva.",
-                    },
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.3,

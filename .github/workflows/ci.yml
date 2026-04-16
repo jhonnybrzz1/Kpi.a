@@ -49,7 +49,7 @@ jobs:
 
     - name: Lint with ruff
       run: |
-        ruff check . --exit-zero
+        ruff check .
 
     - name: Check formatting
       run: |
