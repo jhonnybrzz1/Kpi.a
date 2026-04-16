@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 def validate_input(text: str) -> Dict[str, Any]:

@@ -1,9 +1,10 @@
 """Configuration module for MetricFlow AI"""
 
 import os
-import yaml
-from typing import Dict, Any
 from functools import lru_cache
+from typing import Any, Dict
+
+import yaml
 
 
 @lru_cache(maxsize=1)

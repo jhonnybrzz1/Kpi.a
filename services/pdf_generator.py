@@ -1,10 +1,8 @@
-import os
 import html
 from datetime import datetime
-from typing import Dict, Any
-import json
-from weasyprint import HTML, CSS
-from io import BytesIO
+from typing import Any, Dict
+
+from weasyprint import HTML
 
 
 class PDFGenerator:

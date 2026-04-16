@@ -1,6 +1,7 @@
 """Pydantic schemas for API response validation"""
 
 from typing import List, Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -19,9 +20,7 @@ class ContextAnalysis(BaseModel):
         default="ativacao",
         description="AARRR funnel stage: aquisicao, ativacao, retencao, receita, referencia",
     )
-    complexidade: str = Field(
-        default="media", description="Complexity level: baixa, media, alta"
-    )
+    complexidade: str = Field(default="media", description="Complexity level: baixa, media, alta")
     area_impacto: List[str] = Field(
         default_factory=lambda: ["tecnologia"],
         description="List of impacted areas",
@@ -66,24 +65,16 @@ class KPI(BaseModel):
     nome: str = Field(description="KPI name")
     descricao: str = Field(default="", description="KPI description")
     formula: Optional[str] = Field(default=None, description="Calculation formula")
-    frequencia_medicao: Optional[str] = Field(
-        default="mensal", description="Measurement frequency"
-    )
-    meta_sugerida: Optional[str] = Field(
-        default=None, description="Suggested target"
-    )
-    responsavel_area: Optional[str] = Field(
-        default=None, description="Responsible area"
-    )
+    frequencia_medicao: Optional[str] = Field(default="mensal", description="Measurement frequency")
+    meta_sugerida: Optional[str] = Field(default=None, description="Suggested target")
+    responsavel_area: Optional[str] = Field(default=None, description="Responsible area")
 
 
 class OKR(BaseModel):
     """Schema for OKR"""
 
     objetivo: str = Field(description="Objective")
-    key_results: List[str] = Field(
-        default_factory=list, description="List of key results"
-    )
+    key_results: List[str] = Field(default_factory=list, description="List of key results")
     prazo: Optional[str] = Field(default="trimestral", description="Deadline")
 
 
@@ -97,9 +88,7 @@ class Framework(BaseModel):
 class ImplementationDetails(BaseModel):
     """Schema for implementation details"""
 
-    ferramentas_sugeridas: List[str] = Field(
-        default_factory=list, description="Suggested tools"
-    )
+    ferramentas_sugeridas: List[str] = Field(default_factory=list, description="Suggested tools")
     setup_tracking: str = Field(default="", description="Tracking setup instructions")
     dashboards: str = Field(default="", description="Dashboard suggestions")
 

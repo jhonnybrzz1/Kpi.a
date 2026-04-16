@@ -1,14 +1,15 @@
-import streamlit as st
-import os
 import logging
-from datetime import datetime
+import os
 import traceback
+from datetime import datetime
+
+import streamlit as st
 
 from services.mistral_service import MistralService
 from services.openai_service import OpenAIService
 from services.pdf_generator import PDFGenerator
-from utils.validation import validate_input, sanitize_text
 from utils.examples import INITIATIVE_EXAMPLES
+from utils.validation import sanitize_text, validate_input
 
 # Configure logging
 logging.basicConfig(

@@ -2,14 +2,14 @@
 Unit tests for validation utilities
 """
 
-import unittest
-import sys
 import os
+import sys
+import unittest
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from utils.validation import validate_input, sanitize_text, validate_api_response
+from utils.validation import sanitize_text, validate_api_response, validate_input
 
 
 class TestValidateInput(unittest.TestCase):
