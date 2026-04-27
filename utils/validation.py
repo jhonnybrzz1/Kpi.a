@@ -23,11 +23,11 @@ def validate_input(text: str) -> Dict[str, Any]:
             "message": "A descrição deve ter pelo menos 10 caracteres. Seja mais específico.",
         }
 
-    # Verifica tamanho máximo
-    if len(text) > 5000:
+    # Verifica tamanho máximo (aumentado para suportar documentos anexados)
+    if len(text) > 50000:
         return {
             "valid": False,
-            "message": "A descrição é muito longa. Por favor, limite a 5000 caracteres.",
+            "message": "A descrição é muito longa. Por favor, limite a 50000 caracteres.",
         }
 
     # Verifica se não é apenas espaços ou caracteres especiais

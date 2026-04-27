@@ -2,414 +2,132 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório MetricFlow AI</title>
     <style>
-        @page {
-            size: A4;
-            margin: 2cm 1.5cm;
-            @top-center {
-                content: "MetricFlow AI - Relatório de Métricas";
-                font-size: 10px;
-                color: #666;
-            }
-            @bottom-center {
-                content: "Página " counter(page) " de " counter(pages);
-                font-size: 10px;
-                color: #666;
-            }
+        @page { margin: 1.2cm; size: A4; }
+        body { font-family: 'Helvetica', sans-serif; color: #1e293b; line-height: 1.4; }
+        .header { text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 10px; margin-bottom: 20px; }
+        .header h1 { color: #1e1b4b; margin: 0; font-size: 22pt; }
+        .header p { color: #6366f1; margin: 0; font-weight: bold; }
+        
+        .section { margin-bottom: 20px; page-break-inside: avoid; }
+        .section-title { 
+            background: #f1f5f9; 
+            padding: 8px 12px; 
+            font-size: 13pt; 
+            font-weight: bold; 
+            color: #1e1b4b; 
+            border-left: 5px solid #6366f1;
+            margin-bottom: 10px;
         }
+        
+        .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .north-star-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 10px; }
+        
+        .grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+        .stat { flex: 1; min-width: 20%; background: #f8fafc; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #f1f5f9; }
+        .stat-label { font-size: 8pt; color: #64748b; text-transform: uppercase; }
+        .stat-value { font-size: 10pt; font-weight: bold; color: #1e293b; }
 
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: white;
-            margin: 0;
-            padding: 0;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2cm;
-            border-bottom: 2px solid #007acc;
-            padding-bottom: 1cm;
-        }
-
-        .header h1 {
-            color: #007acc;
-            font-size: 2.5em;
-            margin: 0;
-            font-weight: bold;
-        }
-
-        .header h2 {
-            color: #666;
-            font-size: 1.2em;
-            margin: 0.5em 0;
-            font-weight: normal;
-        }
-
-        .metadata {
-            background: #f8f9fa;
-            padding: 1em;
-            border-radius: 8px;
-            margin: 1.5em 0;
-            border-left: 4px solid #007acc;
-            page-break-inside: avoid;
-        }
-
-        .metadata table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .metadata td {
-            padding: 0.5em;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .metadata td:first-child {
-            font-weight: bold;
-            width: 30%;
-            color: #007acc;
-        }
-
-        .section {
-            margin: 2em 0;
-            page-break-inside: auto;
-            clear: both;
-        }
-
-        .section h2 {
-            color: #007acc;
-            border-bottom: 2px solid #007acc;
-            padding-bottom: 0.5em;
-            margin-bottom: 1em;
-            font-size: 1.5em;
-            page-break-after: avoid;
-            break-after: avoid;
-        }
-
-        .section h3 {
-            color: #0056b3;
-            margin-top: 1.5em;
-            margin-bottom: 0.8em;
-            font-size: 1.2em;
-            page-break-after: avoid;
-            break-after: avoid;
-        }
-
-        .section h4 {
-            color: #004494;
-            margin-top: 1.2em;
-            margin-bottom: 0.6em;
-            font-size: 1.1em;
-            page-break-after: avoid;
-            break-after: avoid;
-        }
-
-        .initiative-box {
-            background: #e8f4fd;
-            padding: 1.5em;
-            border-radius: 8px;
-            border-left: 4px solid #007acc;
-            margin: 1em 0;
-            page-break-inside: avoid;
-        }
-
-        .context-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1em;
-            margin: 1em 0;
-            page-break-inside: avoid;
-        }
-
-        .context-item {
-            background: #f8f9fa;
-            padding: 1em;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-            page-break-inside: avoid;
-        }
-
-        .context-item strong {
-            color: #007acc;
-            display: block;
-            margin-bottom: 0.5em;
-        }
-
-        .north-star {
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-            padding: 1.5em;
-            border-radius: 8px;
-            border-left: 4px solid #f39c12;
-            margin: 1em 0;
-            page-break-inside: avoid;
-        }
-
-        .north-star h4 {
-            color: #e67e22;
-            margin-top: 0;
-        }
-
-        .kpi-item, .okr-item, .framework-item {
-            background: #f8f9fa;
-            padding: 1.2em;
-            margin: 1em 0;
-            border-radius: 6px;
-            border-left: 4px solid #28a745;
-            page-break-inside: avoid;
-            clear: both;
-        }
-
-        .kpi-item h4, .okr-item h4, .framework-item h4 {
-            color: #155724;
-            margin-top: 0;
-            margin-bottom: 0.8em;
-        }
-
-        .kpi-item p, .okr-item p, .framework-item p {
-            margin: 0.5em 0;
-        }
-
-        .implementation-details {
-            background: #d1ecf1;
-            padding: 1.5em;
-            border-radius: 8px;
-            border-left: 4px solid #17a2b8;
-            margin: 1em 0;
-            page-break-inside: avoid;
-        }
-
-        .implementation-details h4 {
-            color: #0c5460;
-            margin-top: 1em;
-            margin-bottom: 0.5em;
-        }
-
-        .implementation-details h4:first-child {
-            margin-top: 0;
-        }
-
-        code {
-            background: #f1f3f4;
-            padding: 0.2em 0.4em;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            color: #d63384;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        ul, ol {
-            padding-left: 1.5em;
-            margin: 0.5em 0;
-        }
-
-        li {
-            margin: 0.3em 0;
-        }
-
-        .risks {
-            background: #f8d7da;
-            padding: 1.5em;
-            border-radius: 8px;
-            border-left: 4px solid #dc3545;
-            margin: 1em 0;
-            page-break-inside: avoid;
-        }
-
-        .risks h3 {
-            color: #721c24;
-            margin-top: 0;
-        }
-
-        .risks ul {
-            margin: 0;
-        }
-
-        .page-break {
-            page-break-before: always;
-        }
-
-        .summary {
-            background: #d4edda;
-            padding: 1.5em;
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
-            margin: 2em 0;
-            page-break-inside: avoid;
-        }
-
-        .summary h3 {
-            color: #155724;
-            margin-top: 0;
-        }
-
-        .footer {
-            margin-top: 3em;
-            padding-top: 1em;
-            border-top: 1px solid #ddd;
-            text-align: center;
-            color: #666;
-            font-size: 0.9em;
-            page-break-before: auto;
-        }
-
-        /* Melhorias específicas para impressão */
-        @media print {
-            .section {
-                page-break-inside: auto;
-                break-inside: auto;
-            }
-
-            .kpi-item, .okr-item, .framework-item {
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-
-            .context-grid {
-                display: block;
-            }
-
-            .context-grid > div {
-                display: block;
-                width: 100%;
-                margin-bottom: 1em;
-            }
-        }
+        .success-box { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px; border-radius: 8px; margin-bottom: 10px; color: #065f46; }
+        .info-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px; border-radius: 8px; margin-bottom: 10px; color: #1e40af; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8fafc; text-align: left; padding: 8px; font-size: 9pt; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 9pt; vertical-align: top; }
+        
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 7pt; font-weight: bold; background: #e0e7ff; color: #4338ca; }
+        .warning-text { color: #9a3412; font-size: 8.5pt; font-weight: bold; margin-top: 4px; }
+        
+        .okr-card { border-left: 3px solid #10b981; padding-left: 10px; margin-bottom: 15px; }
+        .kr-meta { font-size: 8pt; color: #64748b; font-style: italic; }
+        
+        .footer { text-align: center; font-size: 8pt; color: #94a3b8; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+        
+        /* Markdown support */
+        .justificativa-content { font-size: 9.5pt; color: #334155; }
+        .justificativa-content p { margin: 5px 0; }
+        .justificativa-content ul { margin: 5px 0; padding-left: 20px; }
     </style>
 </head>
 <body>
-    <!-- Cabeçalho -->
     <div class="header">
-        <h1>🧠 MetricFlow AI</h1>
-        <h2>Relatório de Análise de Métricas, KPIs e OKRs</h2>
+        <h1>MetricFlow AI</h1>
+        <p>RELATÓRIO ESTRATÉGICO DE MÉTRICAS</p>
     </div>
 
-    <!-- Metadados -->
-    <div class="metadata">
-        <table>
-            <tr>
-                <td>📅 Data de Geração:</td>
-                <td>{{DATE}}</td>
-            </tr>
-            <tr>
-                <td>👤 Responsável:</td>
-                <td>{{RESPONSIBLE}}</td>
-            </tr>
-            <tr>
-                <td>🏢 Empresa:</td>
-                <td>{{COMPANY}}</td>
-            </tr>
-        </table>
+    <div class="grid">
+        <div class="stat"><div class="stat-label">Data</div><div class="stat-value">{{DATE}}</div></div>
+        <div class="stat"><div class="stat-label">Empresa</div><div class="stat-value">{{COMPANY}}</div></div>
+        <div class="stat"><div class="stat-label">Responsável</div><div class="stat-value">{{RESPONSIBLE}}</div></div>
     </div>
 
-    <!-- Seção 1: Descrição da Iniciativa -->
     <div class="section">
-        <h2>📋 1. Descrição da Iniciativa</h2>
-        <div class="initiative-box">
-            <p>{{INITIATIVE}}</p>
+        <div class="section-title">🧠 Contexto e Resumo do PRD</div>
+        <div class="grid">
+            <div class="stat"><div class="stat-label">Tipo</div><div class="stat-value">{{CONTEXT_TYPE}}</div></div>
+            <div class="stat"><div class="stat-label">Game</div><div class="stat-value">{{CONTEXT_GAME}}</div></div>
+            <div class="stat"><div class="stat-label">Objetivo</div><div class="stat-value">{{CONTEXT_OBJECTIVE}}</div></div>
+            <div class="stat"><div class="stat-label">Etapa</div><div class="stat-value">{{CONTEXT_FUNNEL}}</div></div>
+        </div>
+        <div class="success-box">
+            <strong>🎯 Resumo do PRD (Objetivo):</strong><br>
+            {{CONTEXT_PRD}}
+        </div>
+        <div class="info-box">
+            <strong>📊 Dados Identificados:</strong><br>
+            {{CONTEXT_DATA}}
+        </div>
+        <div class="justificativa-content">
+            <strong>📝 Justificativa Técnica:</strong><br>
+            {{CONTEXT_JUSTIFICATION}}
         </div>
     </div>
 
-    <!-- Seção 2: Análise de Contexto -->
     <div class="section">
-        <h2>🧠 2. Análise de Contexto (Mistral AI)</h2>
-
-        <div class="context-grid">
-            <div class="context-item">
-                <strong>Tipo da Iniciativa:</strong>
-                <p>{{CONTEXT_TYPE}}</p>
+        <div class="section-title">🎯 North Star Framework</div>
+        <div class="north-star-box">
+            <h3 style="margin:0; color:#0369a1;">{{NSM_NAME}}</h3>
+            <p style="margin:10px 0; font-size:10pt;">{{NSM_DESC}}</p>
+            <div style="background:#fff; padding:10px; border-radius:5px; border:1px solid #bae6fd; font-family:monospace; font-size:9pt;">
+                Fórmula: {{NSM_FORMULA}}
             </div>
-            <div class="context-item">
-                <strong>Objetivo Principal:</strong>
-                <p>{{CONTEXT_OBJECTIVE}}</p>
-            </div>
-            <div class="context-item">
-                <strong>Etapa do Funil (AARRR):</strong>
-                <p>{{CONTEXT_FUNNEL}}</p>
-            </div>
-            <div class="context-item">
-                <strong>Complexidade:</strong>
-                <p>{{CONTEXT_COMPLEXITY}}</p>
-            </div>
-        </div>
-
-        <h3>Áreas de Impacto</h3>
-        <p>{{CONTEXT_AREAS}}</p>
-
-        <h3>Justificativa da Classificação</h3>
-        <p>{{CONTEXT_JUSTIFICATION}}</p>
-    </div>
-
-    <!-- Seção 3: North Star Metric -->
-    <div class="section">
-        <h2>🌟 3. North Star Metric</h2>
-        <div class="north-star">
-            <h4>{{NORTH_STAR_NAME}}</h4>
-            <p><strong>Descrição:</strong> {{NORTH_STAR_DESC}}</p>
-            <p><strong>Justificativa:</strong> {{NORTH_STAR_JUST}}</p>
+            <p style="margin-top:10px; font-size:8pt; color:#0e7490;">
+                <strong>Validação SMART:</strong> {{NSM_SMART}}
+            </p>
         </div>
     </div>
 
-    <!-- Seção 4: KPIs Principais -->
-    <div class="section page-break">
-        <h2>📊 4. KPIs Principais</h2>
-        {{KPIS_LIST}}
-    </div>
-
-    <!-- Seção 5: OKRs Sugeridos -->
     <div class="section">
-        <h2>🎯 5. OKRs Sugeridos</h2>
-        {{OKRS_LIST}}
+        <div class="section-title">📈 L1 Health Indicators (Saúde do Produto)</div>
+        {{L1_METRICS}}
     </div>
 
-    <!-- Seção 6: Frameworks Aplicáveis -->
     <div class="section">
-        <h2>🔧 6. Frameworks Aplicáveis</h2>
-        {{FRAMEWORKS_LIST}}
+        <div class="section-title">🔍 L2 Diagnostic Metrics (Investigação)</div>
+        {{L2_METRICS}}
     </div>
 
-    <!-- Seção 7: Implementação e Medição -->
-    <div class="section page-break">
-        <h2>⚙️ 7. Implementação e Medição</h2>
-        {{IMPLEMENTATION_DETAILS}}
-    </div>
-
-    <!-- Seção 8: Riscos e Considerações -->
     <div class="section">
-        <h2>⚠️ 8. Riscos e Considerações</h2>
-        <div class="risks">
-            <h3>Riscos Identificados</h3>
-            {{RISKS_LIST}}
+        <div class="section-title">🏆 OKRs de Resultado (Outcomes)</div>
+        {{OKRS}}
+    </div>
+
+    <div class="section">
+        <div class="section-title">⚖️ Contra-Métricas e Guardrails</div>
+        {{COUNTER_METRICS}}
+    </div>
+
+    <div class="section" style="page-break-inside: auto;">
+        <div class="section-title">🛠️ Guia de Implementação e Riscos</div>
+        <div class="card">
+            <p><strong>Ferramentas:</strong> {{TOOLS}}</p>
+            <p><strong>Visualização:</strong> {{VISUALIZATION}}</p>
+            <p><strong>Riscos e Vieses:</strong> {{RISKS}}</p>
         </div>
     </div>
 
-    <!-- Resumo Executivo -->
-    <div class="section">
-        <h2>📝 9. Próximos Passos</h2>
-        <div class="summary">
-            <h3>Recomendações</h3>
-            <ul>
-                <li>Implementar o tracking das métricas identificadas como prioritárias</li>
-                <li>Estabelecer baseline das métricas antes do lançamento da iniciativa</li>
-                <li>Configurar dashboards para acompanhamento em tempo real</li>
-                <li>Definir responsáveis pela coleta e análise de cada métrica</li>
-                <li>Estabelecer reuniões regulares de revisão dos KPIs</li>
-                <li>Implementar os OKRs sugeridos no próximo ciclo de planejamento</li>
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Rodapé -->
     <div class="footer">
-        <p>Este relatório foi gerado automaticamente pelo <strong>MetricFlow AI</strong></p>
-        <p>Sistema Inteligente de Sugestão de Métricas, KPIs e OKRs</p>
-        <p>Powered by Mistral AI + OpenAI GPT-4</p>
+        Gerado por MetricFlow AI &nbsp;·&nbsp; v2.0 &nbsp;·&nbsp; {{DATE}}
     </div>
 </body>
 </html>

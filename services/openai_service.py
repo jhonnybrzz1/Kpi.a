@@ -51,7 +51,7 @@ class OpenAIService:
             )
         self.client = OpenAI(api_key=self.api_key)
         # Using gpt-4.1-mini for better stability and cost efficiency
-        self.model = "gpt-4.1-mini"
+        self.model = "gpt-5.4-nano"
         logger.info("OpenAIService initialized with model: %s", self.model)
 
     @retry_with_backoff(max_retries=3, base_delay=2)
@@ -92,8 +92,8 @@ class OpenAIService:
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.4,
-                max_tokens=2500,
-                timeout=60.0,
+                max_completion_tokens=8000,
+                timeout=90.0,
             )
 
             content = response.choices[0].message.content
@@ -169,8 +169,8 @@ class OpenAIService:
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.3,
-                max_tokens=600,
-                timeout=30.0,
+                max_completion_tokens=600,
+                timeout=90.0,
             )
 
             content = response.choices[0].message.content

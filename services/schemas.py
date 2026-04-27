@@ -1,110 +1,64 @@
-"""Pydantic schemas for API response validation"""
+"""Pydantic schemas for API response validation - Otimizado para PRD e Markdown"""
 
-from typing import List, Optional
-
-from pydantic import BaseModel, Field, field_validator
-
+from typing import Any, List, Optional
+from pydantic import BaseModel, Field, ConfigDict
 
 class ContextAnalysis(BaseModel):
     """Schema for Mistral context analysis response"""
+    tipo: Any = Field(default="funcionalidade")
+    business_game: Any = Field(default="productivity")
+    objetivo: Any = Field(default="engajamento")
+    etapa_funil: Any = Field(default="ativacao")
+    complexidade: Any = Field(default="media")
+    area_impacto: Any = Field(default_factory=list)
+    valor_entregue: Any = Field(default="Não identificado")
+    resumo_prd: Any = Field(default="", description="Resumo executivo focado no objetivo (PRD Style)")
+    dados_atuais: Any = Field(default="Nenhum dado mencionado")
+    justificativa: Any = Field(default="")
+    palavras_chave: Any = Field(default_factory=list)
 
-    tipo: str = Field(
-        default="funcionalidade",
-        description="Initiative type: funcionalidade, processo, produto, estrategia",
-    )
-    objetivo: str = Field(
-        default="operacao",
-        description="Main objective: aquisicao, ativacao, retencao, receita, engajamento",
-    )
-    etapa_funil: str = Field(
-        default="ativacao",
-        description="AARRR funnel stage: aquisicao, ativacao, retencao, receita, referencia",
-    )
-    complexidade: str = Field(default="media", description="Complexity level: baixa, media, alta")
-    area_impacto: List[str] = Field(
-        default_factory=lambda: ["tecnologia"],
-        description="List of impacted areas",
-    )
-    justificativa: str = Field(
-        default="Análise automática baseada no texto fornecido.",
-        description="Justification for the classification",
-    )
-    palavras_chave: Optional[List[str]] = Field(
-        default_factory=lambda: ["iniciativa", "projeto"],
-        description="List of relevant keywords",
-    )
+class NorthStar(BaseModel):
+    nome: str
+    definicao: str
+    justificativa: str
+    validacao_smart: List[str] = Field(default_factory=list)
 
-    @field_validator("tipo")
-    @classmethod
-    def validate_tipo(cls, v: str) -> str:
-        valid_types = ["funcionalidade", "processo", "produto", "estrategia"]
-        if v.lower() not in valid_types:
-            return "funcionalidade"
-        return v.lower()
+class L1HealthIndicator(BaseModel):
+    pilar: str
+    metrica: str
+    meta_sugerida: str
+    por_que_importa: str
 
-    @field_validator("complexidade")
-    @classmethod
-    def validate_complexidade(cls, v: str) -> str:
-        valid_levels = ["baixa", "media", "alta"]
-        if v.lower() not in valid_levels:
-            return "media"
-        return v.lower()
+class L2DiagnosticMetric(BaseModel):
+    vinculo_l1: str
+    metrica: str
+    acao_se_cair: str
 
+class CounterMetric(BaseModel):
+    nome: str
+    protege_contra: str
+    trade_off: str
 
-class NorthStarMetric(BaseModel):
-    """Schema for North Star Metric"""
-
-    nome: str = Field(description="Metric name")
-    descricao: str = Field(default="", description="Metric description")
-    justificativa: str = Field(default="", description="Justification")
-
-
-class KPI(BaseModel):
-    """Schema for KPI"""
-
-    nome: str = Field(description="KPI name")
-    descricao: str = Field(default="", description="KPI description")
-    formula: Optional[str] = Field(default=None, description="Calculation formula")
-    frequencia_medicao: Optional[str] = Field(default="mensal", description="Measurement frequency")
-    meta_sugerida: Optional[str] = Field(default=None, description="Suggested target")
-    responsavel_area: Optional[str] = Field(default=None, description="Responsible area")
-
+class KeyResult(BaseModel):
+    resultado: str
+    baseline: str
+    meta: str
 
 class OKR(BaseModel):
-    """Schema for OKR"""
+    objetivo: str
+    key_results: List[KeyResult]
 
-    objetivo: str = Field(description="Objective")
-    key_results: List[str] = Field(default_factory=list, description="List of key results")
-    prazo: Optional[str] = Field(default="trimestral", description="Deadline")
-
-
-class Framework(BaseModel):
-    """Schema for applicable framework"""
-
-    nome: str = Field(description="Framework name")
-    aplicacao: str = Field(default="", description="How to apply the framework")
-
-
-class ImplementationDetails(BaseModel):
-    """Schema for implementation details"""
-
-    ferramentas_sugeridas: List[str] = Field(default_factory=list, description="Suggested tools")
-    setup_tracking: str = Field(default="", description="Tracking setup instructions")
-    dashboards: str = Field(default="", description="Dashboard suggestions")
-
+class Implementation(BaseModel):
+    ferramentas: List[str]
+    queries_exemplo: List[str]
+    visualizacao: str
 
 class MetricsAnalysis(BaseModel):
-    """Schema for OpenAI metrics analysis response"""
-
-    north_star_metric: NorthStarMetric = Field(description="North Star Metric")
-    kpis: List[KPI] = Field(default_factory=list, description="List of KPIs")
-    okrs: List[OKR] = Field(default_factory=list, description="List of OKRs")
-    frameworks_aplicaveis: Optional[List[Framework]] = Field(
-        default_factory=list, description="Applicable frameworks"
-    )
-    implementacao_medicao: Optional[ImplementationDetails] = Field(
-        default=None, description="Implementation details"
-    )
-    riscos_metricas: Optional[List[str]] = Field(
-        default_factory=list, description="Metrics-related risks"
-    )
+    model_config = ConfigDict(extra="ignore")
+    north_star: NorthStar
+    l1_health_indicators: List[L1HealthIndicator]
+    l2_diagnostic_metrics: List[L2DiagnosticMetric]
+    counter_metrics: List[CounterMetric]
+    okrs: List[OKR]
+    implementacao: Implementation
+    riscos_e_vieses: List[str]

@@ -78,22 +78,28 @@ class MistralService:
                 "model": self.model,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.3,
-                "max_tokens": 1000,
+                "max_tokens": 2000,
             }
 
-            response = requests.post(self.base_url, headers=headers, json=payload, timeout=30)
+            response = requests.post(self.base_url, headers=headers, json=payload, timeout=90)
 
             if response.status_code == 200:
                 result = response.json()
                 content = result["choices"][0]["message"]["content"]
 
-                # Try to parse JSON
+                # Strip markdown code fences if present
+                clean = content.strip()
+                if clean.startswith("```"):
+                    # Remove opening fence (```json or ```)
+                    clean = clean[clean.index("\n")+1:]
+                    # Remove closing fence
+                    if clean.endswith("```"):
+                        clean = clean[:clean.rfind("```")].strip()
                 try:
-                    data = json.loads(content)
+                    data = json.loads(clean)
                 except json.JSONDecodeError:
-                    # If fails, extract JSON from text
-                    logger.warning("JSON parse failed, extracting from text")
-                    data = self._extract_json_from_text(content)
+                    logger.warning("JSON parse failed (%d chars), extracting from text", len(clean))
+                    data = self._extract_json_from_text(clean)
 
                 # Validate required fields
                 data = self._validate_and_complete_response(data)
@@ -132,7 +138,7 @@ class MistralService:
 
             if start != -1 and end != 0:
                 json_str = text[start:end]
-                return json.loads(json_str)
+                return json.loads(json_str, strict=False)
 
             # Fallback: return default structure
             logger.warning("Could not find JSON in response text")
