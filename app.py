@@ -228,12 +228,20 @@ def main() -> None:
                 metrics = cached_generate_metrics(normalize_input(safe_input), context_json, key_stage2)
                 s.update(label="✅ Métricas geradas", state="complete")
 
-            with st.status("✍️ Etapa 3/4 — Resumo Executivo...", expanded=False) as s:
+            with st.status("✍️ Etapa 3/4 — Resumo Executivo...", expanded=True) as s:
                 executive_summary = ""
                 try:
-                    executive_summary = get_openai_service().generate_executive_summary(
-                        safe_input, context, metrics
+                    import time as _time
+                    _t0 = _time.monotonic()
+                    # st.write_stream renders tokens as they arrive and returns full text
+                    executive_summary = st.write_stream(
+                        get_openai_service().stream_executive_summary(
+                            safe_input, context, metrics
+                        )
                     )
+                    ttfv_ms = int((_time.monotonic() - _t0) * 1000)
+                    st.session_state.setdefault("ttfv_history", []).append(ttfv_ms)
+                    logger.info("stream_executive_summary ttfv_ms=%d", ttfv_ms)
                 except Exception as summary_err:
                     logger.warning("Resumo executivo não gerado: %s", redact_log_message(str(summary_err)))
                 s.update(label="✅ Resumo gerado", state="complete")

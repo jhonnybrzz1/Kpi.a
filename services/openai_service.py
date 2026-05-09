@@ -188,3 +188,42 @@ class OpenAIService:
         except Exception as e:
             logger.error("Error generating executive summary: %s", str(e))
             return f"Não foi possível gerar o resumo executivo. Erro: {str(e)}"
+
+    def stream_executive_summary(
+        self, initiative_text: str, context: Dict[str, Any], metrics: Dict[str, Any]
+    ):
+        """
+        Stream executive summary tokens as a generator of str chunks.
+        Compatible with st.write_stream().
+        Falls back to empty string on error (caller handles display).
+        """
+        from config import get_prompt
+
+        prompt_template = get_prompt("openai", "executive_summary", "user")
+        system_prompt = get_prompt("openai", "executive_summary", "system")
+
+        if not system_prompt.strip() or not prompt_template.strip():
+            yield "Não foi possível gerar o resumo executivo."
+            return
+
+        prompt = prompt_template.format(
+            initiative_text=initiative_text,
+            context=json.dumps(context, indent=2, ensure_ascii=False),
+            metrics=json.dumps(metrics, indent=2, ensure_ascii=False),
+        )
+
+        try:
+            with self.client.chat.completions.stream(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.3,
+                max_completion_tokens=600,
+            ) as stream:
+                for text in stream.text_stream:
+                    yield text
+        except Exception as e:
+            logger.error("Error streaming executive summary: %s", str(e))
+            yield f"\n\n_(Erro ao gerar resumo: {str(e)})_"
