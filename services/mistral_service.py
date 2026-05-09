@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from typing import Any, Dict
 
 import requests
@@ -8,6 +9,7 @@ from pydantic import ValidationError
 
 from config import get_prompt
 from services.schemas import ContextAnalysis
+from utils.ai_metrics import record_call, validate_json_structure
 from utils.retry import retry_with_backoff
 
 # Configure module logger
@@ -43,6 +45,10 @@ class MistralService:
         prompt_template = get_prompt("mistral", "analyze_context", "user")
         prompt = prompt_template.format(initiative_text=initiative_text)
 
+        t0 = time.monotonic()
+        raw_content: str = ""
+        usage: Dict[str, int] | None = None
+
         try:
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
@@ -60,14 +66,21 @@ class MistralService:
 
             if response.status_code == 200:
                 result = response.json()
-                content = result["choices"][0]["message"]["content"]
+                raw_content = result["choices"][0]["message"]["content"]
+
+                # Extract usage when available
+                u = result.get("usage")
+                if u:
+                    usage = {
+                        "prompt_tokens": u.get("prompt_tokens", 0),
+                        "completion_tokens": u.get("completion_tokens", 0),
+                        "total_tokens": u.get("total_tokens", 0),
+                    }
 
                 # Strip markdown code fences if present
-                clean = content.strip()
+                clean = raw_content.strip()
                 if clean.startswith("```"):
-                    # Remove opening fence (```json or ```)
                     clean = clean[clean.index("\n")+1:]
-                    # Remove closing fence
                     if clean.endswith("```"):
                         clean = clean[:clean.rfind("```")].strip()
                 try:
@@ -78,7 +91,20 @@ class MistralService:
 
                 # Validate required fields
                 data = self._validate_and_complete_response(data)
-                logger.info("Successfully analyzed initiative context")
+
+                # ── Observability ──────────────────────────────────────────
+                vr = validate_json_structure(raw_content, "context_analysis")
+                operation_id = record_call(
+                    model=self.model, provider="mistral",
+                    latency_ms=int((time.monotonic() - t0) * 1000),
+                    json_valid=vr["json_valid"],
+                    json_error_type=vr["json_error_type"],
+                    usage=usage, temperature=0.3,
+                )
+                logger.info(
+                    "mistral analyze_context operation_id=%s json_valid=%s latency_ms=%d",
+                    operation_id, vr["json_valid"], int((time.monotonic() - t0) * 1000),
+                )
                 return data
 
             else:

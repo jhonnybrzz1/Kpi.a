@@ -110,7 +110,7 @@ def main() -> None:
     if not check_api_keys():
         st.stop()
 
-    # ── DEV: reload de prompts ────────────────────────────────────────────────
+    # ── DEV: reload de prompts + /metrics/ai ─────────────────────────────────
     if not _IS_PRODUCTION:
         with st.sidebar:
             st.markdown("---")
@@ -119,6 +119,20 @@ def main() -> None:
                 cached_analyze_context.clear()
                 cached_generate_metrics.clear()
                 st.success("Prompts recarregados e cache invalidado.")
+
+            st.markdown("---")
+            st.markdown("#### 📊 /metrics/ai (últimos 7 dias)")
+            if st.button("Atualizar métricas", key="refresh_metrics"):
+                st.session_state["_metrics_data"] = None
+            from utils.ai_metrics import get_metrics_summary
+            if "_metrics_data" not in st.session_state:
+                st.session_state["_metrics_data"] = get_metrics_summary(days=7)
+            summary = st.session_state["_metrics_data"]
+            if not summary["byModel"]:
+                st.caption("Nenhuma chamada registrada ainda.")
+            else:
+                import json as _json
+                st.json(_json.dumps(summary, indent=2))
 
     st.markdown("---")
     st.markdown("### Descreva sua Iniciativa")

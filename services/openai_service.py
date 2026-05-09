@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from typing import Any, Dict
 
 from openai import OpenAI
@@ -8,6 +9,7 @@ from pydantic import ValidationError
 
 from config import get_prompt
 from services.schemas import MetricsAnalysis
+from utils.ai_metrics import record_call, validate_json_structure
 from utils.retry import retry_with_backoff
 
 # Configure module logger
@@ -58,6 +60,7 @@ class OpenAIService:
             context_areas=areas_str,
         )
 
+        t0 = time.monotonic()
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -75,7 +78,17 @@ class OpenAIService:
             if content is None:
                 raise Exception("Empty response from OpenAI")
 
+            # Extract usage when available
+            usage = None
+            if response.usage:
+                usage = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                }
+
             # Clean content by removing possible markdown code blocks
+            raw_content = content
             content = content.strip()
             if content.startswith("```json"):
                 content = content[7:]
@@ -93,13 +106,22 @@ class OpenAIService:
                 data = validated.model_dump()
             except ValidationError as e:
                 logger.warning("Validation warning, some fields may use defaults: %s", str(e))
-                # Still try to use the data, Pydantic will fill defaults
                 validated = MetricsAnalysis.model_validate(data, strict=False)
                 data = validated.model_dump()
 
+            # ── Observability ──────────────────────────────────────────────
+            vr = validate_json_structure(raw_content, "metrics_analysis")
+            operation_id = record_call(
+                model=self.model, provider="openai",
+                latency_ms=int((time.monotonic() - t0) * 1000),
+                json_valid=vr["json_valid"],
+                json_error_type=vr["json_error_type"],
+                usage=usage, temperature=0.4,
+            )
             logger.info(
-                "Successfully generated metrics with %d KPIs and %d OKRs",
-                len(data.get("kpis", [])),
+                "openai generate_metrics operation_id=%s json_valid=%s latency_ms=%d okrs=%d",
+                operation_id, vr["json_valid"],
+                int((time.monotonic() - t0) * 1000),
                 len(data.get("okrs", [])),
             )
             return data
