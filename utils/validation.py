@@ -1,6 +1,8 @@
 import re
 from typing import Any, Dict
 
+MAX_INPUT_LENGTH = 50000
+
 
 def validate_input(text: str) -> Dict[str, Any]:
     """
@@ -24,10 +26,10 @@ def validate_input(text: str) -> Dict[str, Any]:
         }
 
     # Verifica tamanho máximo (aumentado para suportar documentos anexados)
-    if len(text) > 50000:
+    if len(text) > MAX_INPUT_LENGTH:
         return {
             "valid": False,
-            "message": "A descrição é muito longa. Por favor, limite a 50000 caracteres.",
+            "message": f"A descrição é muito longa. Por favor, limite a {MAX_INPUT_LENGTH} caracteres.",
         }
 
     # Verifica se não é apenas espaços ou caracteres especiais
@@ -85,4 +87,19 @@ def validate_api_response(response: Dict[str, Any], required_fields: list) -> bo
         if field not in response:
             return False
 
+    return True
+
+import os
+
+
+def check_api_keys() -> bool:
+    """Verifica se as chaves de API obrigatórias estão configuradas."""
+    import streamlit as st  # lazy import: evita dependência em testes unitários
+
+    if not os.getenv("OPENAI_API_KEY"):
+        st.error("OPENAI_API_KEY não configurada")
+        return False
+    if not os.getenv("MISTRAL_API_KEY"):
+        st.error("MISTRAL_API_KEY não configurada")
+        return False
     return True

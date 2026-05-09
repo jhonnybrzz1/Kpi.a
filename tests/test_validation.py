@@ -9,7 +9,7 @@ import unittest
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from utils.validation import sanitize_text, validate_api_response, validate_input
+from utils.validation import MAX_INPUT_LENGTH, sanitize_text, validate_api_response, validate_input
 
 
 class TestValidateInput(unittest.TestCase):
@@ -38,11 +38,16 @@ class TestValidateInput(unittest.TestCase):
         self.assertIn("10 caracteres", result["message"])
 
     def test_maximum_length(self):
-        """Test that input above maximum length fails"""
-        long_text = "A" * 5001
-        result = validate_input(long_text)
+        """Test boundary behavior at MAX_INPUT_LENGTH"""
+        # Exactly at limit → valid
+        result = validate_input("A" * MAX_INPUT_LENGTH)
+        self.assertTrue(result["valid"])
+
+        # One character over limit → invalid
+        result = validate_input("A" * (MAX_INPUT_LENGTH + 1))
         self.assertFalse(result["valid"])
-        self.assertIn("5000 caracteres", result["message"])
+        self.assertIn("caracteres", result["message"])
+        self.assertIn(str(MAX_INPUT_LENGTH), result["message"])
 
     def test_no_valid_characters(self):
         """Test that input without valid characters fails"""

@@ -22,6 +22,14 @@ mistral:
       }}
 
 openai:
+  executive_summary:
+    system: |
+      Você é um estrategista sênior de produto. Escreva resumos executivos concisos, orientados a decisão e baseados em dados.
+    user: |
+      Com base na iniciativa e nas métricas geradas, escreva um resumo executivo de 3 a 4 parágrafos destacando o objetivo central, as métricas-chave e os OKRs prioritários.
+      INICIATIVA: {initiative_text}
+      CONTEXTO: {context}
+      MÉTRICAS: {metrics}
   generate_metrics:
     system: |
       Você é um estrategista sênior de métricas de produto (North Star Framework).

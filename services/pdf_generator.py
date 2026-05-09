@@ -68,6 +68,7 @@ class PDFGenerator:
             "{{DATE}}": data.get("date", datetime.now().strftime("%d/%m/%Y")),
             "{{RESPONSIBLE}}": self._e(data.get("responsible", "N/A")),
             "{{COMPANY}}": self._e(data.get("company", "N/A")),
+            "{{EXECUTIVE_SUMMARY}}": self._render_executive_summary(data.get("executive_summary", "")),
             "{{CONTEXT_TYPE}}": self._e(ctx.get("tipo", "N/A")),
             "{{CONTEXT_GAME}}": self._e(ctx.get("business_game", "N/A")),
             "{{CONTEXT_OBJECTIVE}}": self._e(ctx.get("objetivo", "N/A")),
@@ -92,6 +93,11 @@ class PDFGenerator:
         for k, v in replacements.items():
             rendered = rendered.replace(k, str(v))
         return rendered
+
+    def _render_executive_summary(self, summary: str) -> str:
+        if not summary or not summary.strip():
+            return ""
+        return f'<div class="success-box"><strong>📋 Resumo Executivo:</strong><br>{self._md(summary)}</div>'
 
     def _render_l1(self, items: List[Dict]) -> str:
         if not items: return "<p>Não disponível</p>"

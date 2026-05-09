@@ -1,8 +1,6 @@
 import json
 import logging
 import os
-import time
-from functools import wraps
 from typing import Any, Dict
 
 from openai import OpenAI
@@ -10,33 +8,10 @@ from pydantic import ValidationError
 
 from config import get_prompt
 from services.schemas import MetricsAnalysis
+from utils.retry import retry_with_backoff
 
 # Configure module logger
 logger = logging.getLogger(__name__)
-
-
-def retry_with_backoff(max_retries=3, base_delay=1):
-    """Decorator to retry function calls with exponential backoff"""
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            for attempt in range(max_retries):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        logger.error("Failed after %d attempts: %s", max_retries, str(e))
-                        raise
-                    delay = base_delay * (2**attempt)
-                    logger.warning(
-                        "Attempt %d failed, retrying in %ds: %s", attempt + 1, delay, str(e)
-                    )
-                    time.sleep(delay)
-
-        return wrapper
-
-    return decorator
 
 
 class OpenAIService:
@@ -155,11 +130,22 @@ class OpenAIService:
         prompt_template = get_prompt("openai", "executive_summary", "user")
         system_prompt = get_prompt("openai", "executive_summary", "system")
 
+        # Guard: validate prompts are non-empty
+        if not system_prompt.strip():
+            raise ValueError("missing_prompt: openai.executive_summary.system")
+        if not prompt_template.strip():
+            raise ValueError("missing_prompt: openai.executive_summary.user")
+
         prompt = prompt_template.format(
             initiative_text=initiative_text,
             context=json.dumps(context, indent=2, ensure_ascii=False),
             metrics=json.dumps(metrics, indent=2, ensure_ascii=False),
         )
+
+        # Guard: validate all placeholders were replaced
+        for placeholder in ("{initiative_text}", "{context}", "{metrics}"):
+            if placeholder in prompt:
+                raise ValueError(f"missing_placeholder: {placeholder}")
 
         try:
             response = self.client.chat.completions.create(
