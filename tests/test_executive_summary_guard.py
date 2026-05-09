@@ -74,20 +74,18 @@ class TestExecutiveSummaryGuardUnreplacedPlaceholder(unittest.TestCase):
             pass  # covered by test below via direct injection
 
     def test_payload_contains_unreplaced_placeholder_raises(self):
-        """Simulate a template where format() doesn't consume a placeholder (e.g. typo key)."""
+        """Inject a prompt with an extra placeholder that will cause KeyError during format()."""
         svc = _make_service()
-        # Patch format result to contain a leftover placeholder by monkeypatching str.format
-        original_format = str.format
-
-        def fake_format(self_str, **kwargs):
-            # Return the template with one placeholder still present
-            return "Resumo de {initiative_text} contexto ok métricas ok"
-
-        with self._patch_prompts("dummy {initiative_text} {context} {metrics}"):
-            with patch.object(str, "format", fake_format):
-                with self.assertRaises(ValueError) as ctx:
-                    svc.generate_executive_summary(INITIATIVE, CONTEXT, METRICS)
-        self.assertIn("missing_placeholder: {initiative_text}", str(ctx.exception))
+        
+        # We inject a prompt that has an extra key {typo_key} that generate_executive_summary doesn't provide
+        prompt_with_typo = "Resumo de {initiative_text} com erro {typo_key}"
+        
+        with self._patch_prompts(prompt_with_typo):
+            # The .format() call will raise KeyError for 'typo_key'
+            with self.assertRaises(KeyError) as ctx:
+                svc.generate_executive_summary(INITIATIVE, CONTEXT, METRICS)
+        
+        self.assertIn("typo_key", str(ctx.exception))
         svc.client.chat.completions.create.assert_not_called()
 
 

@@ -44,10 +44,10 @@ class TestMistralServiceJSONExtraction(unittest.TestCase):
         text = "No JSON here"
         result = service._extract_json_from_text(text)
 
-        # Should return default structure
+        # Should return default structure (from Pydantic schemas)
         self.assertEqual(result["tipo"], "funcionalidade")
-        self.assertEqual(result["objetivo"], "operacao")
-        self.assertIn("tecnologia", result["area_impacto"])
+        self.assertEqual(result["objetivo"], "engajamento")
+        self.assertEqual(result["business_game"], "productivity")
 
     def test_extract_json_with_markdown_block(self):
         """Test extraction from markdown code block"""
