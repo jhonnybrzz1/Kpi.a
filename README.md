@@ -1,105 +1,99 @@
-# MetricFlow AI
+# MetricFlow AI v2.0 🧠
 
-## 🧠 Sistema Inteligente de Sugestão de Métricas, KPIs e OKRs
+## 🚀 Sistema Inteligente de Métricas, KPIs e OKRs
 
-MetricFlow AI é uma aplicação Streamlit que utiliza inteligência artificial avançada para gerar métricas, KPIs e OKRs personalizados com base na descrição de projetos ou iniciativas. A aplicação combina os poderes da IA da Mistral AI e OpenAI GPT-4 para fornecer análises inteligentes e insights valiosos.
+O **MetricFlow AI** é uma plataforma avançada construída com Streamlit que utiliza o poder combinado da **Mistral AI** e **OpenAI GPT-4o** para transformar descrições de iniciativas em métricas acionáveis, KPIs estratégicos e OKRs bem estruturados.
 
-## 🌟 Recursos
+Esta versão 2.0 foca em **robustez técnica**, **segurança de dados** e **excelência na análise de contexto**.
 
-- **Análise de Contexto Inteligente**: Utiliza Mistral AI para entender o contexto do seu projeto
-- **Geração de Métricas Avançadas**: Emprega GPT-4 para sugerir KPIs e OKRs relevantes
-- **Relatórios Profissionais em PDF**: Gera relatórios completos e formatados
-- **Interface Intuitiva**: Design moderno e amigável com Streamlit
-- **Sistema de Classificação AARRR**: Análise baseada no modelo de crescimento AARRR (Acquisition, Activation, Retention, Revenue, Referral)
-- **Exemplos de Iniciativas**: Biblioteca de exemplos para inspirar e guiar
+---
 
-## 🛠️ Tecnologias Utilizadas
+## 🌟 Principais Recursos
 
-- Python
-- Streamlit
-- Mistral AI API
-- OpenAI GPT-4 API
-- PDF Generator
-- Streamlit Components
+- **Análise Multimodal de Contexto**: Utiliza `mistral-large-latest` para entender profundamente o domínio e os objetivos da iniciativa.
+- **Motor de Métricas Especializado**: Aproveita o GPT-4o para gerar KPIs baseados em frameworks de mercado (AARRR, HEART, North Star).
+- **Relatórios Executivos**: Geração automática de PDFs profissionais usando `xhtml2pdf`.
+- **Segurança Enterprise**: Sanitização de inputs, proteção contra prompt injection e redação automática de dados sensíveis em logs.
+- **Suporte a Documentos**: Extração de texto de arquivos PDF e DOCX para análise de contexto enriquecida.
+- **Cache Inteligente**: Sistema de cache otimizado para reduzir latência e custos de API.
 
-## 🚀 Instalação e Execução
+---
 
-1. Clone este repositório:
+## 🛠️ Stack Tecnológica
+
+- **Frontend/App**: [Streamlit](https://streamlit.io/)
+- **Modelos de IA**: Mistral AI (Contexto) & OpenAI GPT-4o (Métricas)
+- **Processamento de Documentos**: `pypdf`, `python-docx`
+- **Geração de PDF**: `xhtml2pdf`, `markdown`
+- **Validação de Dados**: `pydantic`, `PyYAML`
+- **Infraestrutura**: Render.com (PaaS)
+
+---
+
+## 🏗️ Arquitetura do Sistema
+
+O projeto segue uma estrutura modular para facilitar a manutenção e escalabilidade:
+
+```text
+├── app.py                 # Orquestrador principal da UI e fluxo de dados
+├── services/              # Camada de integração com serviços externos
+│   ├── mistral_service.py # Lógica de análise de contexto
+│   ├── openai_service.py  # Lógica de geração de métricas
+│   └── pdf_generator.py   # Motor de renderização de relatórios
+├── ui/                    # Componentes modulares da interface
+├── utils/                 # Utilitários de segurança, validação e telemetria
+├── tests/                 # Suíte completa de testes unitários
+└── config/                # Prompts estruturados em YAML
+```
+
+---
+
+## 🔐 Segurança e Governança
+
+O MetricFlow AI implementa diversas camadas de proteção:
+- **Redação de Logs**: Filtros que impedem que chaves de API ou dados sensíveis do usuário cheguem aos logs.
+- **Rate Limiting**: Limites por sessão para evitar abusos e controlar custos.
+- **Validação de Input**: Sanitização rigorosa de todo texto inserido.
+- **Proteção de Variáveis**: Gestão segura via `.env` e segredos do Streamlit.
+
+---
+
+## 🧪 Testes e Qualidade
+
+O projeto conta com uma suíte de testes robusta baseada em `unittest`:
 ```bash
-git clone https://github.com/jhonnybrzz1/Kpi.a.git
+# Executar todos os testes
+pytest tests/
 ```
+Os testes cobrem validação de input, lógica de serviços, segurança e geração de chaves de cache.
 
-2. Instale as dependências:
-```bash
-pip install -r requirements.txt
-# ou se estiver usando uv
-uv pip install -r requirements.txt
-```
+---
 
-3. Configure as variáveis de ambiente:
-```bash
-# Crie um arquivo .env com suas chaves de API
-OPENAI_API_KEY=sua_chave_openai
-MISTRAL_API_KEY=sua_chave_mistral
-```
+## 🚀 Deploy e Execução Local
 
-4. Execute a aplicação:
-```bash
-streamlit run app.py
-```
+### Local
+1. Clone e acesse o diretório: `git clone https://github.com/jhonnybrzz1/Kpi.a.git`
+2. Instale as dependências: `pip install -r requirements.txt`
+3. Configure o `.env` (use `.env.example` como base).
+4. Rode: `streamlit run app.py`
 
-## 🔐 Configuração de API Keys
+### Produção (Render)
+O projeto está pré-configurado para o [Render](https://render.com/). Consulte `render.yaml` para detalhes da infraestrutura.
 
-A aplicação requer chaves de API válidas para ambos os serviços de IA:
+---
 
-- **OPENAI_API_KEY**: Sua chave de API do OpenAI (usando o modelo GPT-4o)
-- **MISTRAL_API_KEY**: Sua chave de API da Mistral AI (usando o modelo mistral-large-2512)
+## 📊 Casos de Uso
 
-## 📊 Funcionalidades
+- **Product Managers**: Definir métricas de sucesso para novas features.
+- **Growth Hackers**: Estruturar funis AARRR baseados em IA.
+- **Líderes de Engenharia**: Criar OKRs técnicos alinhados ao negócio.
+- **Consultores**: Gerar relatórios de KPIs profissionais para stakeholders.
 
-1. **Descrição da Iniciativa**: Insira uma descrição detalhada do seu projeto ou funcionalidade
-2. **Análise de Contexto**: A IA analisa e classifica sua iniciativa
-3. **Geração de Métricas**: Criação de KPIs e OKRs personalizados
-4. **Relatório PDF**: Download de um relatório profissional com todas as métricas
-5. **Sistema de Exemplos**: Acesso a exemplos de iniciativas para referência
+---
 
-## 📁 Estrutura do Projeto
+## 📄 Licença e Contribuição
 
-```
-├── app.py                 # Aplicação Streamlit principal
-├── services/              # Serviços de IA
-│   ├── mistral_service.py # Integração com Mistral AI
-│   ├── openai_service.py  # Integração com OpenAI
-│   └── pdf_generator.py   # Geração de relatórios PDF
-├── utils/                 # Utilitários
-│   ├── validation.py      # Validação de entrada
-│   └── examples.py        # Exemplos de iniciativas
-├── .env.example          # Exemplo de variáveis de ambiente
-└── requirements.txt      # Dependências do projeto
-```
+Licenciado sob a **MIT License**. Sinta-se à vontade para abrir Issues ou Pull Requests seguindo as diretrizes de código limpo do projeto.
 
-## 🎯 Casos de Uso
-
-- Definição de métricas para novos produtos ou funcionalidades
-- Estabelecimento de OKRs para equipes e projetos
-- Análise de métricas baseadas no modelo AARRR
-- Geração de relatórios de métricas para stakeholders
-- Planejamento estratégico baseado em dados
-
-## 🤝 Contribuição
-
-Sinta-se à vontade para contribuir com este projeto:
-
-1. Faça um fork do repositório
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está licenciado sob os termos descritos no arquivo LICENSE.
-
-## 📞 Suporte
-
-Para suporte, abra uma issue no repositório ou entre em contato através das informações disponíveis no menu "About" da aplicação.
+---
+*MetricFlow AI — De dados brutos a decisões estratégicas.*
