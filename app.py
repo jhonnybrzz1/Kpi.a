@@ -17,6 +17,7 @@ from ui.results import render_results
 from ui.sidebar import render_sidebar
 from ui.styles import inject_styles
 from utils.cache_key import build_cache_key, normalize_input
+from utils.history import save_snapshot
 from utils.security import (
     MAX_ANALYSES_PER_SESSION,
     MAX_FILE_SIZE_BYTES,
@@ -135,6 +136,20 @@ def main() -> None:
                 st.json(_json.dumps(summary, indent=2))
 
     st.markdown("---")
+
+    # ── Restore snapshot (sem reanalisar) ─────────────────────────────────────
+    restored = st.session_state.pop("_restore_snapshot", None)
+    if restored:
+        saved_at = restored.get("saved_at", "")[:16].replace("T", " ") if "saved_at" in restored else ""
+        st.info(f"🕘 Exibindo análise salva{f' de {saved_at}' if saved_at else ''} — sem reexecutar.", icon="ℹ️")
+        render_results(
+            restored["context"],
+            restored["metrics"],
+            restored["pdf_bytes"],
+            restored["artifact_result"],
+        )
+        return
+
     st.markdown("### Descreva sua Iniciativa")
 
     default_text = st.session_state.get("example_text", "")
@@ -267,6 +282,14 @@ def main() -> None:
                     s.update(label="❌ Relatório não disponível", state="error")
 
             st.balloons()
+            save_snapshot(
+                initiative_text=safe_input,
+                context=context,
+                metrics=metrics,
+                executive_summary=executive_summary,
+                pdf_bytes=artifact_bytes,
+                artifact_result=artifact_result,
+            )
             render_results(context, metrics, artifact_bytes, artifact_result, report_id)
 
         except Exception as e:

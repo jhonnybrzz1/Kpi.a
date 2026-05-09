@@ -39,3 +39,22 @@ def render_sidebar() -> None:
             if st.button(example["title"], use_container_width=True, key=f"btn_{key}"):
                 st.session_state["example_text"] = example["description"]
                 st.rerun()
+
+        # ── Análises Recentes ─────────────────────────────────────────────
+        from utils.history import get_history
+        history = get_history()
+        if history:
+            st.markdown("---")
+            st.markdown("#### 🕘 Análises Recentes")
+            for item in history:
+                saved_at = item["saved_at"][:16].replace("T", " ")
+                label = f"{item['initiative_preview'][:40]}…" if len(item["initiative_preview"]) > 40 else item["initiative_preview"]
+                st.caption(f"🗓 {saved_at}")
+                if st.button(
+                    f"Ver análise",
+                    key=f"restore_{item['snapshot_id']}",
+                    use_container_width=True,
+                    help=label,
+                ):
+                    st.session_state["_restore_snapshot"] = item["payload"]
+                    st.rerun()
