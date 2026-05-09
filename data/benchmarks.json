@@ -1,0 +1,35 @@
+[
+  {
+    "source": "Mixpanel Product Benchmarks 2023",
+    "url": "https://mixpanel.com/content/product-benchmarks-report/",
+    "date_accessed": "2026-05-09",
+    "metric": "D7 Retention",
+    "segment": "SaaS / Productivity",
+    "median": 0.13,
+    "top_quartil": 0.28,
+    "definition_notes": "N-Day Retention (Day 7). Active users defined by any event.",
+    "comparability_score": "high"
+  },
+  {
+    "source": "Amplitude Product Benchmarks 2024",
+    "url": "https://amplitude.com/benchmarks",
+    "date_accessed": "2026-05-09",
+    "metric": "D7 Retention",
+    "segment": "Productivity Apps",
+    "median": 0.15,
+    "top_quartil": 0.32,
+    "definition_notes": "Return retention on Day 7.",
+    "comparability_score": "high"
+  },
+  {
+    "source": "Lenny's Newsletter - B2B SaaS Benchmarks",
+    "url": "https://www.lennysnewsletter.com/p/benchmarks",
+    "date_accessed": "2026-05-09",
+    "metric": "D7 Retention",
+    "segment": "B2B SaaS (Productivity)",
+    "median": 0.18,
+    "top_quartil": 0.42,
+    "definition_notes": "D7 Retention for 'Good' and 'Great' categories.",
+    "comparability_score": "medium"
+  }
+]

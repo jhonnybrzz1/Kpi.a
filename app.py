@@ -135,18 +135,93 @@ def main() -> None:
                 import json as _json
                 st.json(_json.dumps(summary, indent=2))
 
+            st.markdown("---")
+            st.markdown("#### 📊 Market Benchmark (D7)")
+            if st.button("Gerar Research Report", key="generate_benchmark"):
+                from utils.benchmarks import generate_report
+                path = generate_report()
+                st.success(f"Relatório gerado em: `{path}`")
+                with st.expander("👁️ Visualizar Relatório", expanded=True):
+                    with open(path, "r", encoding="utf-8") as f:
+                        st.markdown(f.read())
+
     st.markdown("---")
 
+    # ── Handle View Switching ────────────────────────────────────────────────
+    current_view = st.session_state.get("_view", "main")
+    
+    # Check for direct ID access in URL
+    query_params = st.query_params
+    if "id" in query_params:
+        snapshot_id = query_params["id"]
+        from utils.history import get_history, calculate_content_hash
+        history = get_history()
+        match = next((h for h in history if h["snapshot_id"] == snapshot_id), None)
+        
+        from utils.telemetry import record_telemetry_event
+        if match:
+            # Validation: version and content_hash
+            is_valid = match.get("version") == "v1"
+            if is_valid:
+                expected_hash = calculate_content_hash(match["payload"])
+                if match.get("content_hash") != expected_hash:
+                    is_valid = False
+                    st.error(f"Snapshot `{snapshot_id}` corrompido ou alterado localmente.")
+            
+            record_telemetry_event(f"analysis_opened_by_id_valid_{str(is_valid).lower()}")
+            
+            if is_valid:
+                st.session_state["_restore_snapshot"] = match
+                st.query_params.clear()
+                st.rerun()
+        else:
+            record_telemetry_event("analysis_opened_by_id_not_found")
+            st.error(f"Snapshot com ID `{snapshot_id}` não encontrado.")
+
+    if current_view == "compare":
+        from ui.comparison import render_comparison
+        from utils.history import get_history
+        history = get_history()
+        compare_ids = st.session_state.get("compare_ids", [])
+        snapshots_to_compare = [h for h in history if h["snapshot_id"] in compare_ids]
+        
+        # Validation: check mandatory fields for comparison (Snapshot Contract v1)
+        valid = True
+        for s in snapshots_to_compare:
+            m = s["payload"].get("metrics", {})
+            c = s["payload"].get("context", {})
+            if not m.get("north_star") or not m.get("okrs") or not c.get("etapa_funil"):
+                st.error(f"Snapshot `{s['snapshot_id']}` é inválido para comparação.")
+                valid = False
+        
+        if valid and len(snapshots_to_compare) == 2:
+            render_comparison(snapshots_to_compare)
+            return
+        else:
+            st.session_state["_view"] = "main"
+            st.rerun()
+
     # ── Restore snapshot (sem reanalisar) ─────────────────────────────────────
-    restored = st.session_state.pop("_restore_snapshot", None)
-    if restored:
-        saved_at = restored.get("saved_at", "")[:16].replace("T", " ") if "saved_at" in restored else ""
+    restored_item = st.session_state.pop("_restore_snapshot", None)
+    if restored_item:
+        st.session_state["_was_restored"] = True
+        snapshot_id = restored_item["snapshot_id"]
+        restored = restored_item["payload"]
+        saved_at = restored_item.get("saved_at", "")[:16].replace("T", " ") if "saved_at" in restored_item else ""
         st.info(f"🕘 Exibindo análise salva{f' de {saved_at}' if saved_at else ''} — sem reexecutar.", icon="ℹ️")
+        
+        # Display inputs as text or readonly equivalents to show what was used
+        st.markdown(f"**Iniciativa:**\n{restored.get('initiative_text', '')}")
+        col1, col2 = st.columns(2)
+        col1.markdown(f"**Responsável:** {restored.get('responsible', '')}")
+        col2.markdown(f"**Empresa:** {restored.get('company', '')}")
+        
         render_results(
             restored["context"],
             restored["metrics"],
             restored["pdf_bytes"],
             restored["artifact_result"],
+            snapshot_id=snapshot_id
         )
         return
 
@@ -193,6 +268,11 @@ def main() -> None:
     company = col2.text_input("Empresa")
 
     if st.button("🚀 Gerar Análise MetricFlow", type="primary", use_container_width=True):
+        if st.session_state.get("_was_restored", False):
+            from utils.telemetry import record_telemetry_event
+            record_telemetry_event("generation_started_after_reload")
+            st.session_state["_was_restored"] = False
+
         if not user_input:
             st.warning("Por favor, descreva a iniciativa.")
             return
@@ -234,10 +314,14 @@ def main() -> None:
             key_stage2_base = build_cache_key(safe_input, openai_params["model"], prompts_raw, openai_params)
 
             with st.status("🧠 Etapa 1/4 — Contexto (Mistral AI)...", expanded=False) as s:
+                from ui.styles import render_skeletons
+                render_skeletons(1)
                 context = cached_analyze_context(normalize_input(safe_input), key_stage1)
                 s.update(label="✅ Contexto analisado", state="complete")
 
             with st.status("📊 Etapa 2/4 — Arquitetura de Métricas...", expanded=False) as s:
+                from ui.styles import render_skeletons
+                render_skeletons(2)
                 context_json = json.dumps(context, ensure_ascii=False)
                 key_stage2 = f"{key_stage2_base}:{hash(context_json)}"
                 metrics = cached_generate_metrics(normalize_input(safe_input), context_json, key_stage2)
@@ -282,19 +366,37 @@ def main() -> None:
                     s.update(label="❌ Relatório não disponível", state="error")
 
             st.balloons()
-            save_snapshot(
-                initiative_text=safe_input,
-                context=context,
-                metrics=metrics,
-                executive_summary=executive_summary,
-                pdf_bytes=artifact_bytes,
-                artifact_result=artifact_result,
-            )
-            render_results(context, metrics, artifact_bytes, artifact_result, report_id)
+            from utils.telemetry import record_telemetry_event
+            record_telemetry_event("analysis_save_attempt")
+            try:
+                snapshot_id = save_snapshot(
+                    initiative_text=safe_input,
+                    responsible=responsible,
+                    company=company,
+                    context=context,
+                    metrics=metrics,
+                    executive_summary=executive_summary,
+                    pdf_bytes=artifact_bytes,
+                    artifact_result=artifact_result,
+                )
+                record_telemetry_event("analysis_save_success")
+                st.success(f"✅ Análise salva como **Snapshot #{snapshot_id}**")
+            except Exception as save_err:
+                logger.error("Failed to save snapshot: %s", str(save_err))
+                record_telemetry_event("analysis_save_error")
+                st.warning("A análise foi gerada, mas houve um erro ao salvar no histórico.")
+            
+            render_results(context, metrics, artifact_bytes, artifact_result, report_id, snapshot_id=snapshot_id)
 
         except Exception as e:
             logger.error("pipeline error: %s", redact_log_message(str(e)))
-            st.error("Ocorreu um erro no processamento. Tente novamente.")
+            from ui.styles import render_premium_state
+            render_premium_state(
+                "error", 
+                "Ops! Algo deu errado", 
+                "Ocorreu um erro inesperado no processamento da sua análise. Por favor, tente novamente em alguns instantes.",
+                "Tentar Novamente"
+            )
             if not _IS_PRODUCTION:
                 st.code(traceback.format_exc())
 

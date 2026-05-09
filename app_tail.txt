@@ -1,0 +1,17 @@
+            from utils.telemetry import record_telemetry_event
+            record_telemetry_event("history_snapshot_saved")
+            
+            from utils.history import _dedupe_key
+            snapshot_id = _dedupe_key(safe_input)
+            render_results(context, metrics, artifact_bytes, artifact_result, report_id, snapshot_id=snapshot_id)
+
+        except Exception as e:
+            logger.error("pipeline error: %s", redact_log_message(str(e)))
+            st.error("Ocorreu um erro no processamento. Tente novamente.")
+            if not _IS_PRODUCTION:
+                st.code(traceback.format_exc())
+
+
+if __name__ == "__main__":
+    main()
+    render_footer()
