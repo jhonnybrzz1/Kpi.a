@@ -31,7 +31,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-_IS_PRODUCTION = os.getenv("ENV", "production") == "production"
+_IS_PRODUCTION = os.getenv("STREAMLIT_ENVIRONMENT", "production") == "production"
 
 
 @st.cache_resource
@@ -234,11 +234,18 @@ def main() -> None:
                     "metrics_analysis": metrics,
                     "executive_summary": executive_summary,
                 }
-                pdf_bytes = get_pdf_generator().generate_report(report_data)
-                s.update(label="✅ Relatório pronto", state="complete")
+                artifact_result, artifact_bytes, report_id = (
+                    get_pdf_generator().generate_report_with_fallback(report_data)
+                )
+                if artifact_result == "pdf_only":
+                    s.update(label="✅ Relatório pronto", state="complete")
+                elif artifact_result == "markdown_only":
+                    s.update(label="⚠️ PDF indisponível — Markdown gerado", state="complete")
+                else:
+                    s.update(label="❌ Relatório não disponível", state="error")
 
             st.balloons()
-            render_results(context, metrics, pdf_bytes)
+            render_results(context, metrics, artifact_bytes, artifact_result, report_id)
 
         except Exception as e:
             logger.error("pipeline error: %s", redact_log_message(str(e)))

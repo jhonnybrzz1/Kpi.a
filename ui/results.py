@@ -4,7 +4,13 @@ from typing import Any, Dict
 import streamlit as st
 
 
-def render_results(context: Dict[str, Any], metrics: Dict[str, Any], pdf_bytes: bytes) -> None:
+def render_results(
+    context: Dict[str, Any],
+    metrics: Dict[str, Any],
+    artifact_bytes: bytes,
+    artifact_result: str = "pdf_only",
+    report_id: str = "",
+) -> None:
     st.markdown("## Análise Estratégica de Métricas")
 
     with st.expander("🧠 Contexto e Valor Entregue", expanded=True):
@@ -69,10 +75,22 @@ def render_results(context: Dict[str, Any], metrics: Dict[str, Any], pdf_bytes: 
         for q in imp.get("queries_exemplo", []):
             st.code(q, language="sql")
 
-    st.download_button(
-        "📄 Baixar Relatório PDF",
-        data=pdf_bytes,
-        file_name="MetricFlow_Report.pdf",
-        mime="application/pdf",
-        use_container_width=True,
-    )
+    if artifact_result == "pdf_only":
+        st.download_button(
+            "📄 Baixar Relatório PDF",
+            data=artifact_bytes,
+            file_name="MetricFlow_Report.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
+    elif artifact_result == "markdown_only":
+        st.warning(f"⚠️ PDF indisponível (ID: `{report_id}`). Baixe o relatório em Markdown:")
+        st.download_button(
+            "📝 Baixar Relatório Markdown",
+            data=artifact_bytes,
+            file_name="MetricFlow_Report.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
+    else:
+        st.error(f"❌ Relatório não disponível (ID: `{report_id}`). Tente novamente.")

@@ -1,11 +1,16 @@
 import html
+import logging
 import markdown
 import json
 import os
+import uuid
 from io import BytesIO
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 from xhtml2pdf import pisa
+
+logger = logging.getLogger(__name__)
+
 
 class PDFGenerator:
     def __init__(self):
@@ -13,6 +18,7 @@ class PDFGenerator:
         self.template_path = os.path.join(base_dir, "templates", "pdf_template.html")
 
     def generate_report(self, data: Dict[str, Any]) -> bytes:
+        """Generate PDF. Raises on failure — use generate_report_with_fallback for resilience."""
         try:
             with open(self.template_path, "r", encoding="utf-8") as f:
                 template = f.read()
@@ -21,10 +27,87 @@ class PDFGenerator:
             pisa_status = pisa.CreatePDF(html_content, dest=pdf_buffer, encoding='utf-8')
             if pisa_status.err:
                 raise Exception("Falha na geração dos bytes do PDF")
-            pdf_bytes = pdf_buffer.getvalue()
-            return pdf_bytes
+            return pdf_buffer.getvalue()
         except Exception as e:
             raise Exception(f"Erro ao gerar PDF: {str(e)}")
+
+    def generate_report_with_fallback(
+        self, data: Dict[str, Any]
+    ) -> Tuple[str, bytes, str]:
+        """
+        Try PDF; fall back to Markdown on failure.
+
+        Returns:
+            artifact_result: "pdf_only" | "markdown_only" | "none"
+            artifact_bytes:  PDF bytes, Markdown bytes, or b""
+            report_id:       correlator for logs
+        """
+        report_id: str = data.get("report_id") or str(uuid.uuid4())[:8]
+        t0 = datetime.utcnow()
+
+        try:
+            pdf_bytes = self.generate_report(data)
+            logger.info("report_id=%s artifact_result=pdf_only", report_id)
+            return "pdf_only", pdf_bytes, report_id
+        except Exception as pdf_err:
+            t1 = datetime.utcnow()
+            logger.warning(
+                "report_id=%s pdf_error=%s elapsed_ms=%d — trying markdown fallback",
+                report_id, str(pdf_err), int((t1 - t0).total_seconds() * 1000),
+            )
+            try:
+                md_bytes = self.generate_markdown(data).encode("utf-8")
+                t2 = datetime.utcnow()
+                logger.info(
+                    "report_id=%s artifact_result=markdown_only fallback_ms=%d",
+                    report_id, int((t2 - t0).total_seconds() * 1000),
+                )
+                return "markdown_only", md_bytes, report_id
+            except Exception as md_err:
+                logger.error(
+                    "report_id=%s artifact_result=none pdf_error=%s markdown_error=%s",
+                    report_id, str(pdf_err), str(md_err),
+                )
+                return "none", b"", report_id
+
+    def generate_markdown(self, data: Dict[str, Any]) -> str:
+        """Render report as plain Markdown (fallback artifact)."""
+        ctx = data.get("context_analysis", {})
+        m = data.get("metrics_analysis", {})
+        ns = m.get("north_star", {})
+        lines = [
+            f"# MetricFlow AI — Relatório",
+            f"**Data:** {data.get('date', '')}  |  "
+            f"**Responsável:** {data.get('responsible', 'N/A')}  |  "
+            f"**Empresa:** {data.get('company', 'N/A')}",
+            "",
+        ]
+        if data.get("executive_summary"):
+            lines += ["## Resumo Executivo", data["executive_summary"], ""]
+
+        lines += [
+            "## Contexto",
+            f"- **Tipo:** {ctx.get('tipo', 'N/A')}",
+            f"- **Objetivo:** {ctx.get('objetivo', 'N/A')}",
+            f"- **Etapa AARRR:** {ctx.get('etapa_funil', 'N/A')}",
+            f"- **Resumo PRD:** {ctx.get('resumo_prd', 'N/A')}",
+            "",
+            "## North Star Metric",
+            f"**{ns.get('nome', 'N/A')}** — {ns.get('justificativa', '')}",
+            f"Fórmula: `{ns.get('definicao', 'N/A')}`",
+            "",
+            "## L1 Health Indicators",
+        ]
+        for l1 in m.get("l1_health_indicators", []):
+            lines.append(f"- **{l1.get('pilar')} / {l1.get('metrica')}** — Meta: {l1.get('meta_sugerida')}")
+
+        lines += ["", "## OKRs"]
+        for okr in m.get("okrs", []):
+            lines.append(f"### {okr.get('objetivo')}")
+            for kr in okr.get("key_results", []):
+                lines.append(f"- {kr.get('resultado')} (baseline: {kr.get('baseline')} → meta: {kr.get('meta')})")
+
+        return "\n".join(lines)
 
     def _md(self, text: str) -> str:
         if not text: return ""

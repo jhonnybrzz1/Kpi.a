@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
@@ -20,6 +20,13 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ matrix.python-version }}-${{ hashFiles('requirements*.txt') }}
+        restore-keys: pip-${{ matrix.python-version }}-
 
     - name: Install dependencies
       run: |
@@ -42,15 +49,20 @@ jobs:
       with:
         python-version: "3.11"
 
+    - name: Cache pip (lint)
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: pip-lint-${{ hashFiles('requirements*.txt') }}
+        restore-keys: pip-lint-
+
     - name: Install ruff
       run: |
         python -m pip install --upgrade pip
         pip install ruff
 
     - name: Lint with ruff
-      run: |
-        ruff check .
+      run: ruff check .
 
     - name: Check formatting
-      run: |
-        ruff format . --check
+      run: ruff format . --check
