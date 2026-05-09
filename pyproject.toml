@@ -9,7 +9,8 @@ dependencies = [
     "PyYAML>=6.0.1",
     "requests>=2.32.4",
     "streamlit>=1.47.1",
-    "weasyprint>=66.0",
+    "xhtml2pdf>=0.2.11",
+    "markdown>=3.6",
 ]
 
 [project.optional-dependencies]

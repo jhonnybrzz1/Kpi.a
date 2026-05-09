@@ -41,8 +41,8 @@ class CounterMetric(BaseModel):
 
 class KeyResult(BaseModel):
     resultado: str
-    baseline: str
-    meta: str
+    baseline: Any  # Aceita str, int ou float da API
+    meta: Any  # Aceita str, int ou float da API
 
 class OKR(BaseModel):
     objetivo: str

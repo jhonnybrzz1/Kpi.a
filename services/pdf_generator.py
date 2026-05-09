@@ -1,22 +1,27 @@
 import html
 import markdown
 import json
+import os
+from io import BytesIO
 from datetime import datetime
 from typing import Any, Dict, List
-from weasyprint import HTML
+from xhtml2pdf import pisa
 
 class PDFGenerator:
     def __init__(self):
-        self.template_path = "templates/pdf_template.html"
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.template_path = os.path.join(base_dir, "templates", "pdf_template.html")
 
     def generate_report(self, data: Dict[str, Any]) -> bytes:
         try:
             with open(self.template_path, "r", encoding="utf-8") as f:
                 template = f.read()
             html_content = self._render_template(template, data)
-            pdf_bytes = HTML(string=html_content).write_pdf()
-            if pdf_bytes is None:
+            pdf_buffer = BytesIO()
+            pisa_status = pisa.CreatePDF(html_content, dest=pdf_buffer, encoding='utf-8')
+            if pisa_status.err:
                 raise Exception("Falha na geração dos bytes do PDF")
+            pdf_bytes = pdf_buffer.getvalue()
             return pdf_bytes
         except Exception as e:
             raise Exception(f"Erro ao gerar PDF: {str(e)}")
