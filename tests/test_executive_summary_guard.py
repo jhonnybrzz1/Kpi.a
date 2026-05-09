@@ -30,7 +30,12 @@ class TestExecutiveSummaryGuardMissingPrompt(unittest.TestCase):
 
     def test_missing_system_prompt_raises_and_no_api_call(self):
         svc = _make_service()
-        with patch("services.openai_service.get_prompt", side_effect=lambda s, p, t: "" if t == "system" else "user {initiative_text} {context} {metrics}"):
+        with patch(
+            "services.openai_service.get_prompt",
+            side_effect=lambda s, p, t: (
+                "" if t == "system" else "user {initiative_text} {context} {metrics}"
+            ),
+        ):
             with self.assertRaises(ValueError) as ctx:
                 svc.generate_executive_summary(INITIATIVE, CONTEXT, METRICS)
         self.assertIn("missing_prompt: openai.executive_summary.system", str(ctx.exception))
@@ -38,7 +43,10 @@ class TestExecutiveSummaryGuardMissingPrompt(unittest.TestCase):
 
     def test_missing_user_prompt_raises_and_no_api_call(self):
         svc = _make_service()
-        with patch("services.openai_service.get_prompt", side_effect=lambda s, p, t: "system ok" if t == "system" else ""):
+        with patch(
+            "services.openai_service.get_prompt",
+            side_effect=lambda s, p, t: "system ok" if t == "system" else "",
+        ):
             with self.assertRaises(ValueError) as ctx:
                 svc.generate_executive_summary(INITIATIVE, CONTEXT, METRICS)
         self.assertIn("missing_prompt: openai.executive_summary.user", str(ctx.exception))
@@ -46,7 +54,12 @@ class TestExecutiveSummaryGuardMissingPrompt(unittest.TestCase):
 
     def test_whitespace_system_prompt_raises_and_no_api_call(self):
         svc = _make_service()
-        with patch("services.openai_service.get_prompt", side_effect=lambda s, p, t: "   " if t == "system" else "user {initiative_text} {context} {metrics}"):
+        with patch(
+            "services.openai_service.get_prompt",
+            side_effect=lambda s, p, t: (
+                "   " if t == "system" else "user {initiative_text} {context} {metrics}"
+            ),
+        ):
             with self.assertRaises(ValueError) as ctx:
                 svc.generate_executive_summary(INITIATIVE, CONTEXT, METRICS)
         self.assertIn("missing_prompt: openai.executive_summary.system", str(ctx.exception))
@@ -63,7 +76,7 @@ class TestExecutiveSummaryGuardUnreplacedPlaceholder(unittest.TestCase):
         )
 
     def test_unreplaced_initiative_text_raises(self):
-        svc = _make_service()
+        _make_service()
         # Template missing {initiative_text} substitution — simulate by using literal in template
         # We pass None as initiative_text so .format() leaves placeholder unreplaced? No —
         # easier: patch format to return a string that still contains the literal.
@@ -76,15 +89,15 @@ class TestExecutiveSummaryGuardUnreplacedPlaceholder(unittest.TestCase):
     def test_payload_contains_unreplaced_placeholder_raises(self):
         """Inject a prompt with an extra placeholder that will cause KeyError during format()."""
         svc = _make_service()
-        
+
         # We inject a prompt that has an extra key {typo_key} that generate_executive_summary doesn't provide
         prompt_with_typo = "Resumo de {initiative_text} com erro {typo_key}"
-        
+
         with self._patch_prompts(prompt_with_typo):
             # The .format() call will raise KeyError for 'typo_key'
             with self.assertRaises(KeyError) as ctx:
                 svc.generate_executive_summary(INITIATIVE, CONTEXT, METRICS)
-        
+
         self.assertIn("typo_key", str(ctx.exception))
         svc.client.chat.completions.create.assert_not_called()
 

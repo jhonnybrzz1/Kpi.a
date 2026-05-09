@@ -5,18 +5,32 @@ Regression tests for executive_summary integration and PDF generation
 import os
 import sys
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from services.pdf_generator import PDFGenerator
 
-
-SAMPLE_CONTEXT = {"tipo": "funcionalidade", "business_game": "productivity", "objetivo": "retencao",
-                  "etapa_funil": "retencao", "resumo_prd": "Teste", "dados_atuais": {}, "justificativa": ""}
+SAMPLE_CONTEXT = {
+    "tipo": "funcionalidade",
+    "business_game": "productivity",
+    "objetivo": "retencao",
+    "etapa_funil": "retencao",
+    "resumo_prd": "Teste",
+    "dados_atuais": {},
+    "justificativa": "",
+}
 SAMPLE_METRICS = {
-    "north_star": {"nome": "NSM", "definicao": "formula", "justificativa": "why", "validacao_smart": []},
-    "l1_health_indicators": [], "l2_diagnostic_metrics": [], "counter_metrics": [], "okrs": [],
+    "north_star": {
+        "nome": "NSM",
+        "definicao": "formula",
+        "justificativa": "why",
+        "validacao_smart": [],
+    },
+    "l1_health_indicators": [],
+    "l2_diagnostic_metrics": [],
+    "counter_metrics": [],
+    "okrs": [],
     "implementacao": {"ferramentas": [], "queries_exemplo": [], "visualizacao": ""},
     "riscos_e_vieses": [],
 }
@@ -24,7 +38,9 @@ SAMPLE_METRICS = {
 
 def _base_report_data(executive_summary=""):
     return {
-        "date": "09/05/2026", "responsible": "Dev", "company": "Acme",
+        "date": "09/05/2026",
+        "responsible": "Dev",
+        "company": "Acme",
         "context_analysis": SAMPLE_CONTEXT,
         "metrics_analysis": SAMPLE_METRICS,
         "executive_summary": executive_summary,
@@ -110,7 +126,9 @@ class TestExecutiveSummaryFlowGuard(unittest.TestCase):
         executive_summary = ""
         if context and metrics:
             try:
-                executive_summary = mock_service.generate_executive_summary("input", context, metrics)
+                executive_summary = mock_service.generate_executive_summary(
+                    "input", context, metrics
+                )
             except Exception:
                 pass
         return executive_summary

@@ -1,5 +1,7 @@
+from typing import Any, Dict, List
+
 import streamlit as st
-from typing import List, Dict, Any
+
 
 def render_comparison(snapshots: List[Dict[str, Any]]) -> None:
     """Render side-by-side comparison of 2 snapshots."""
@@ -8,7 +10,7 @@ def render_comparison(snapshots: List[Dict[str, Any]]) -> None:
         return
 
     st.markdown("## ⚖️ Comparação Lado a Lado")
-    
+
     if st.button("⬅️ Voltar"):
         st.session_state["_view"] = "main"
         st.rerun()
@@ -61,7 +63,7 @@ def render_comparison(snapshots: List[Dict[str, Any]]) -> None:
     # ── Key Results Comparison ──────────────────────────────────────────────
     st.markdown("### 🏆 Comparação de OKRs")
     okrs1, okrs2 = m1.get("okrs", []), m2.get("okrs", [])
-    
+
     # Simple list display
     ol1, ol2 = st.columns(2)
     with ol1:
@@ -77,4 +79,5 @@ def render_comparison(snapshots: List[Dict[str, Any]]) -> None:
 
     st.markdown("---")
     from utils.telemetry import record_telemetry_event
+
     record_telemetry_event("compare_completed")

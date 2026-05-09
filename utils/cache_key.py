@@ -20,7 +20,9 @@ def params_signature(params: Dict[str, Any]) -> str:
     return hashlib.sha256(serialized.encode()).hexdigest()[:16]
 
 
-def build_cache_key(input_text: str, model: str, prompts_content: str, params: Dict[str, Any]) -> str:
+def build_cache_key(
+    input_text: str, model: str, prompts_content: str, params: Dict[str, Any]
+) -> str:
     """Compose the full deterministic cache key for one API stage."""
     input_hash = hashlib.sha256(normalize_input(input_text).encode()).hexdigest()[:16]
     return f"{input_hash}:{model}:{prompt_version_hash(prompts_content)}:{params_signature(params)}"

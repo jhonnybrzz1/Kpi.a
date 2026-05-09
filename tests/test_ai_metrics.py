@@ -11,13 +11,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _tmp.close()
 import utils.ai_metrics as _mod
+
 _mod._DB_PATH = _tmp.name
 
 from utils.ai_metrics import get_metrics_summary, record_call, validate_json_structure
 
 
 class TestValidateJsonStructure(unittest.TestCase):
-
     def test_valid_context_analysis(self):
         raw = '{"tipo":"produto","objetivo":"retencao","etapa_funil":"ativacao","resumo_prd":"ok"}'
         r = validate_json_structure(raw, "context_analysis")
@@ -58,7 +58,6 @@ class TestValidateJsonStructure(unittest.TestCase):
 
 
 class TestRecordCall(unittest.TestCase):
-
     def test_returns_operation_id(self):
         op_id = record_call(model="m", provider="p", latency_ms=100, json_valid=True)
         self.assertIsInstance(op_id, str)
@@ -66,27 +65,49 @@ class TestRecordCall(unittest.TestCase):
 
     def test_records_with_usage(self):
         op_id = record_call(
-            model="gpt-4", provider="openai", latency_ms=500, json_valid=True,
+            model="gpt-4",
+            provider="openai",
+            latency_ms=500,
+            json_valid=True,
             usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
         )
         self.assertIsNotNone(op_id)
 
     def test_records_without_usage(self):
-        op_id = record_call(model="mistral", provider="mistral", latency_ms=300,
-                            json_valid=False, json_error_type="parse_error")
+        op_id = record_call(
+            model="mistral",
+            provider="mistral",
+            latency_ms=300,
+            json_valid=False,
+            json_error_type="parse_error",
+        )
         self.assertIsNotNone(op_id)
 
 
 class TestGetMetricsSummary(unittest.TestCase):
-
     def setUp(self):
         # Insert known records
-        record_call(model="test-model", provider="test", latency_ms=200, json_valid=True,
-                    usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150})
-        record_call(model="test-model", provider="test", latency_ms=400, json_valid=False,
-                    json_error_type="missing_field")
-        record_call(model="test-model", provider="test", latency_ms=300, json_valid=True,
-                    usage={"prompt_tokens": 200, "completion_tokens": 80, "total_tokens": 280})
+        record_call(
+            model="test-model",
+            provider="test",
+            latency_ms=200,
+            json_valid=True,
+            usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
+        )
+        record_call(
+            model="test-model",
+            provider="test",
+            latency_ms=400,
+            json_valid=False,
+            json_error_type="missing_field",
+        )
+        record_call(
+            model="test-model",
+            provider="test",
+            latency_ms=300,
+            json_valid=True,
+            usage={"prompt_tokens": 200, "completion_tokens": 80, "total_tokens": 280},
+        )
 
     def test_summary_structure(self):
         s = get_metrics_summary(days=7)

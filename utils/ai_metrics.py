@@ -22,9 +22,8 @@ _REQUIRED_FIELDS: Dict[str, List[str]] = {
 
 # ── JSON validation ───────────────────────────────────────────────────────────
 
-def validate_json_structure(
-    raw: str, schema_key: str = "metrics_analysis"
-) -> Dict[str, Any]:
+
+def validate_json_structure(raw: str, schema_key: str = "metrics_analysis") -> Dict[str, Any]:
     """
     Validate raw JSON string against the minimum schema.
 
@@ -38,26 +37,39 @@ def validate_json_structure(
     try:
         data = json.loads(raw)
     except (json.JSONDecodeError, ValueError) as e:
-        return {"json_valid": False, "json_error_type": "parse_error",
-                "json_error_detail": str(e)[:200]}
+        return {
+            "json_valid": False,
+            "json_error_type": "parse_error",
+            "json_error_detail": str(e)[:200],
+        }
 
     if not isinstance(data, dict):
-        return {"json_valid": False, "json_error_type": "type_error",
-                "json_error_detail": f"expected dict, got {type(data).__name__}"}
+        return {
+            "json_valid": False,
+            "json_error_type": "type_error",
+            "json_error_detail": f"expected dict, got {type(data).__name__}",
+        }
 
     required = _REQUIRED_FIELDS.get(schema_key, [])
     for field in required:
         if field not in data:
-            return {"json_valid": False, "json_error_type": "missing_field",
-                    "json_error_detail": f"missing: {field}"}
+            return {
+                "json_valid": False,
+                "json_error_type": "missing_field",
+                "json_error_detail": f"missing: {field}",
+            }
         if data[field] is None:
-            return {"json_valid": False, "json_error_type": "type_error",
-                    "json_error_detail": f"null value: {field}"}
+            return {
+                "json_valid": False,
+                "json_error_type": "type_error",
+                "json_error_detail": f"null value: {field}",
+            }
 
     return {"json_valid": True, "json_error_type": None, "json_error_detail": None}
 
 
 # ── SQLite helpers ────────────────────────────────────────────────────────────
+
 
 @contextmanager
 def _db():
@@ -95,6 +107,7 @@ def _ensure_table() -> None:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+
 def record_call(
     *,
     model: str,
@@ -119,8 +132,15 @@ def record_call(
                 usage_available, prompt_tokens, completion_tokens, total_tokens)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
-                operation_id, ts, model, provider, prompt_version, temperature,
-                latency_ms, int(json_valid), json_error_type,
+                operation_id,
+                ts,
+                model,
+                provider,
+                prompt_version,
+                temperature,
+                latency_ms,
+                int(json_valid),
+                json_error_type,
                 int(usage_available),
                 usage.get("prompt_tokens") if usage else None,
                 usage.get("completion_tokens") if usage else None,
@@ -158,15 +178,21 @@ def get_metrics_summary(days: int = 7) -> Dict[str, Any]:
     by_model = []
     for r in rows:
         total = r["total_calls"]
-        by_model.append({
-            "model": r["model"],
-            "totalCalls": total,
-            "invalidJsonRate": round(r["invalid_json_count"] / total, 4) if total else 0,
-            "avgLatencyMs": round(r["avg_latency_ms"], 1) if r["avg_latency_ms"] else None,
-            "avgPromptTokens": round(r["avg_prompt_tokens"], 1) if r["avg_prompt_tokens"] else None,
-            "avgCompletionTokens": round(r["avg_completion_tokens"], 1) if r["avg_completion_tokens"] else None,
-            "tokenCoverageRate": round(r["usage_available_calls"] / total, 4) if total else 0,
-        })
+        by_model.append(
+            {
+                "model": r["model"],
+                "totalCalls": total,
+                "invalidJsonRate": round(r["invalid_json_count"] / total, 4) if total else 0,
+                "avgLatencyMs": round(r["avg_latency_ms"], 1) if r["avg_latency_ms"] else None,
+                "avgPromptTokens": round(r["avg_prompt_tokens"], 1)
+                if r["avg_prompt_tokens"]
+                else None,
+                "avgCompletionTokens": round(r["avg_completion_tokens"], 1)
+                if r["avg_completion_tokens"]
+                else None,
+                "tokenCoverageRate": round(r["usage_available_calls"] / total, 4) if total else 0,
+            }
+        )
 
     return {
         "lastUpdated": datetime.now(timezone.utc).isoformat(),

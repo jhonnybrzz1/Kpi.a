@@ -112,15 +112,18 @@ class OpenAIService:
             # ── Observability ──────────────────────────────────────────────
             vr = validate_json_structure(raw_content, "metrics_analysis")
             operation_id = record_call(
-                model=self.model, provider="openai",
+                model=self.model,
+                provider="openai",
                 latency_ms=int((time.monotonic() - t0) * 1000),
                 json_valid=vr["json_valid"],
                 json_error_type=vr["json_error_type"],
-                usage=usage, temperature=0.4,
+                usage=usage,
+                temperature=0.4,
             )
             logger.info(
                 "openai generate_metrics operation_id=%s json_valid=%s latency_ms=%d okrs=%d",
-                operation_id, vr["json_valid"],
+                operation_id,
+                vr["json_valid"],
                 int((time.monotonic() - t0) * 1000),
                 len(data.get("okrs", [])),
             )

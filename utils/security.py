@@ -45,26 +45,39 @@ def security_choke_point(prompt_final: str) -> Dict[str, Any]:
       reason: str
     """
     if not prompt_final or not prompt_final.strip():
-        return {"ok": False, "sanitized_prompt": None,
-                "message_user": "A descrição não pode estar vazia.", "reason": "empty_input"}
+        return {
+            "ok": False,
+            "sanitized_prompt": None,
+            "message_user": "A descrição não pode estar vazia.",
+            "reason": "empty_input",
+        }
 
     # Check injection on raw input (before sanitize_text strips HTML tags)
     if _INJECTION_PATTERNS.search(prompt_final):
-        return {"ok": False, "sanitized_prompt": None,
-                "message_user": "Entrada inválida. Por favor, descreva sua iniciativa normalmente.",
-                "reason": "prompt_injection"}
+        return {
+            "ok": False,
+            "sanitized_prompt": None,
+            "message_user": "Entrada inválida. Por favor, descreva sua iniciativa normalmente.",
+            "reason": "prompt_injection",
+        }
 
     sanitized = sanitize_text(prompt_final)
 
     if _INJECTION_PATTERNS.search(sanitized):
-        return {"ok": False, "sanitized_prompt": None,
-                "message_user": "Entrada inválida. Por favor, descreva sua iniciativa normalmente.",
-                "reason": "prompt_injection"}
+        return {
+            "ok": False,
+            "sanitized_prompt": None,
+            "message_user": "Entrada inválida. Por favor, descreva sua iniciativa normalmente.",
+            "reason": "prompt_injection",
+        }
 
     result = validate_input(sanitized)
     if not result["valid"]:
-        return {"ok": False, "sanitized_prompt": None,
-                "message_user": result["message"], "reason": "invalid_input"}
+        return {
+            "ok": False,
+            "sanitized_prompt": None,
+            "message_user": result["message"],
+            "reason": "invalid_input",
+        }
 
-    return {"ok": True, "sanitized_prompt": sanitized,
-            "message_user": "", "reason": "ok"}
+    return {"ok": True, "sanitized_prompt": sanitized, "message_user": "", "reason": "ok"}

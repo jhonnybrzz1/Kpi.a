@@ -80,9 +80,9 @@ class MistralService:
                 # Strip markdown code fences if present
                 clean = raw_content.strip()
                 if clean.startswith("```"):
-                    clean = clean[clean.index("\n")+1:]
+                    clean = clean[clean.index("\n") + 1 :]
                     if clean.endswith("```"):
-                        clean = clean[:clean.rfind("```")].strip()
+                        clean = clean[: clean.rfind("```")].strip()
                 try:
                     data = json.loads(clean)
                 except json.JSONDecodeError:
@@ -95,15 +95,19 @@ class MistralService:
                 # ── Observability ──────────────────────────────────────────
                 vr = validate_json_structure(raw_content, "context_analysis")
                 operation_id = record_call(
-                    model=self.model, provider="mistral",
+                    model=self.model,
+                    provider="mistral",
                     latency_ms=int((time.monotonic() - t0) * 1000),
                     json_valid=vr["json_valid"],
                     json_error_type=vr["json_error_type"],
-                    usage=usage, temperature=0.3,
+                    usage=usage,
+                    temperature=0.3,
                 )
                 logger.info(
                     "mistral analyze_context operation_id=%s json_valid=%s latency_ms=%d",
-                    operation_id, vr["json_valid"], int((time.monotonic() - t0) * 1000),
+                    operation_id,
+                    vr["json_valid"],
+                    int((time.monotonic() - t0) * 1000),
                 )
                 return data
 

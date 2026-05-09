@@ -72,6 +72,7 @@ def cached_generate_metrics(
     initiative_text: str, context_json: str, _cache_key: str
 ) -> Dict[str, Any]:
     import json
+
     logger.info("cache miss: generate_metrics key=%s", _cache_key)
     return get_openai_service().generate_metrics(initiative_text, json.loads(context_json))
 
@@ -126,6 +127,7 @@ def main() -> None:
             if st.button("Atualizar métricas", key="refresh_metrics"):
                 st.session_state["_metrics_data"] = None
             from utils.ai_metrics import get_metrics_summary
+
             if "_metrics_data" not in st.session_state:
                 st.session_state["_metrics_data"] = get_metrics_summary(days=7)
             summary = st.session_state["_metrics_data"]
@@ -133,12 +135,14 @@ def main() -> None:
                 st.caption("Nenhuma chamada registrada ainda.")
             else:
                 import json as _json
+
                 st.json(_json.dumps(summary, indent=2))
 
             st.markdown("---")
             st.markdown("#### 📊 Market Benchmark (D7)")
             if st.button("Gerar Research Report", key="generate_benchmark"):
                 from utils.benchmarks import generate_report
+
                 path = generate_report()
                 st.success(f"Relatório gerado em: `{path}`")
                 with st.expander("👁️ Visualizar Relatório", expanded=True):
@@ -149,16 +153,18 @@ def main() -> None:
 
     # ── Handle View Switching ────────────────────────────────────────────────
     current_view = st.session_state.get("_view", "main")
-    
+
     # Check for direct ID access in URL
     query_params = st.query_params
     if "id" in query_params:
         snapshot_id = query_params["id"]
-        from utils.history import get_history, calculate_content_hash
+        from utils.history import calculate_content_hash, get_history
+
         history = get_history()
         match = next((h for h in history if h["snapshot_id"] == snapshot_id), None)
-        
+
         from utils.telemetry import record_telemetry_event
+
         if match:
             # Validation: version and content_hash
             is_valid = match.get("version") == "v1"
@@ -167,9 +173,9 @@ def main() -> None:
                 if match.get("content_hash") != expected_hash:
                     is_valid = False
                     st.error(f"Snapshot `{snapshot_id}` corrompido ou alterado localmente.")
-            
+
             record_telemetry_event(f"analysis_opened_by_id_valid_{str(is_valid).lower()}")
-            
+
             if is_valid:
                 st.session_state["_restore_snapshot"] = match
                 st.query_params.clear()
@@ -181,10 +187,11 @@ def main() -> None:
     if current_view == "compare":
         from ui.comparison import render_comparison
         from utils.history import get_history
+
         history = get_history()
         compare_ids = st.session_state.get("compare_ids", [])
         snapshots_to_compare = [h for h in history if h["snapshot_id"] in compare_ids]
-        
+
         # Validation: check mandatory fields for comparison (Snapshot Contract v1)
         valid = True
         for s in snapshots_to_compare:
@@ -193,7 +200,7 @@ def main() -> None:
             if not m.get("north_star") or not m.get("okrs") or not c.get("etapa_funil"):
                 st.error(f"Snapshot `{s['snapshot_id']}` é inválido para comparação.")
                 valid = False
-        
+
         if valid and len(snapshots_to_compare) == 2:
             render_comparison(snapshots_to_compare)
             return
@@ -207,21 +214,28 @@ def main() -> None:
         st.session_state["_was_restored"] = True
         snapshot_id = restored_item["snapshot_id"]
         restored = restored_item["payload"]
-        saved_at = restored_item.get("saved_at", "")[:16].replace("T", " ") if "saved_at" in restored_item else ""
-        st.info(f"🕘 Exibindo análise salva{f' de {saved_at}' if saved_at else ''} — sem reexecutar.", icon="ℹ️")
-        
+        saved_at = (
+            restored_item.get("saved_at", "")[:16].replace("T", " ")
+            if "saved_at" in restored_item
+            else ""
+        )
+        st.info(
+            f"🕘 Exibindo análise salva{f' de {saved_at}' if saved_at else ''} — sem reexecutar.",
+            icon="ℹ️",
+        )
+
         # Display inputs as text or readonly equivalents to show what was used
         st.markdown(f"**Iniciativa:**\n{restored.get('initiative_text', '')}")
         col1, col2 = st.columns(2)
         col1.markdown(f"**Responsável:** {restored.get('responsible', '')}")
         col2.markdown(f"**Empresa:** {restored.get('company', '')}")
-        
+
         render_results(
             restored["context"],
             restored["metrics"],
             restored["pdf_bytes"],
             restored["artifact_result"],
-            snapshot_id=snapshot_id
+            snapshot_id=snapshot_id,
         )
         return
 
@@ -249,7 +263,7 @@ def main() -> None:
             if uploaded_file.size > MAX_FILE_SIZE_BYTES:
                 st.session_state["upload_rejected_total"] += 1
                 st.error(
-                    f"Arquivo muito grande ({uploaded_file.size // (1024*1024):.1f} MB). "
+                    f"Arquivo muito grande ({uploaded_file.size // (1024 * 1024):.1f} MB). "
                     f"Limite: {MAX_FILE_SIZE_MB} MB."
                 )
                 uploaded_file = None
@@ -270,6 +284,7 @@ def main() -> None:
     if st.button("🚀 Gerar Análise MetricFlow", type="primary", use_container_width=True):
         if st.session_state.get("_was_restored", False):
             from utils.telemetry import record_telemetry_event
+
             record_telemetry_event("generation_started_after_reload")
             st.session_state["_was_restored"] = False
 
@@ -291,9 +306,7 @@ def main() -> None:
         if not check["ok"]:
             if check["reason"] == "prompt_injection":
                 st.session_state["core_blocked_prompt_injection_total"] += 1
-            logger.warning(
-                "security_choke_point blocked: reason=%s", check["reason"]
-            )
+            logger.warning("security_choke_point blocked: reason=%s", check["reason"])
             st.error(check["message_user"])
             return
 
@@ -308,41 +321,54 @@ def main() -> None:
 
             prompts_raw = _prompts_raw()
             mistral_params = {"model": "mistral-large-2512", "temperature": 0.3, "max_tokens": 2000}
-            openai_params = {"model": "gpt-5.4-nano", "temperature": 0.4, "max_completion_tokens": 8000}
+            openai_params = {
+                "model": "gpt-5.4-nano",
+                "temperature": 0.4,
+                "max_completion_tokens": 8000,
+            }
 
-            key_stage1 = build_cache_key(safe_input, mistral_params["model"], prompts_raw, mistral_params)
-            key_stage2_base = build_cache_key(safe_input, openai_params["model"], prompts_raw, openai_params)
+            key_stage1 = build_cache_key(
+                safe_input, mistral_params["model"], prompts_raw, mistral_params
+            )
+            key_stage2_base = build_cache_key(
+                safe_input, openai_params["model"], prompts_raw, openai_params
+            )
 
             with st.status("🧠 Etapa 1/4 — Contexto (Mistral AI)...", expanded=False) as s:
                 from ui.styles import render_skeletons
+
                 render_skeletons(1)
                 context = cached_analyze_context(normalize_input(safe_input), key_stage1)
                 s.update(label="✅ Contexto analisado", state="complete")
 
             with st.status("📊 Etapa 2/4 — Arquitetura de Métricas...", expanded=False) as s:
                 from ui.styles import render_skeletons
+
                 render_skeletons(2)
                 context_json = json.dumps(context, ensure_ascii=False)
                 key_stage2 = f"{key_stage2_base}:{hash(context_json)}"
-                metrics = cached_generate_metrics(normalize_input(safe_input), context_json, key_stage2)
+                metrics = cached_generate_metrics(
+                    normalize_input(safe_input), context_json, key_stage2
+                )
                 s.update(label="✅ Métricas geradas", state="complete")
 
             with st.status("✍️ Etapa 3/4 — Resumo Executivo...", expanded=True) as s:
                 executive_summary = ""
                 try:
                     import time as _time
+
                     _t0 = _time.monotonic()
                     # st.write_stream renders tokens as they arrive and returns full text
                     executive_summary = st.write_stream(
-                        get_openai_service().stream_executive_summary(
-                            safe_input, context, metrics
-                        )
+                        get_openai_service().stream_executive_summary(safe_input, context, metrics)
                     )
                     ttfv_ms = int((_time.monotonic() - _t0) * 1000)
                     st.session_state.setdefault("ttfv_history", []).append(ttfv_ms)
                     logger.info("stream_executive_summary ttfv_ms=%d", ttfv_ms)
                 except Exception as summary_err:
-                    logger.warning("Resumo executivo não gerado: %s", redact_log_message(str(summary_err)))
+                    logger.warning(
+                        "Resumo executivo não gerado: %s", redact_log_message(str(summary_err))
+                    )
                 s.update(label="✅ Resumo gerado", state="complete")
 
             with st.status("📄 Etapa 4/4 — Relatório PDF...", expanded=False) as s:
@@ -367,6 +393,7 @@ def main() -> None:
 
             st.balloons()
             from utils.telemetry import record_telemetry_event
+
             record_telemetry_event("analysis_save_attempt")
             try:
                 snapshot_id = save_snapshot(
@@ -385,17 +412,25 @@ def main() -> None:
                 logger.error("Failed to save snapshot: %s", str(save_err))
                 record_telemetry_event("analysis_save_error")
                 st.warning("A análise foi gerada, mas houve um erro ao salvar no histórico.")
-            
-            render_results(context, metrics, artifact_bytes, artifact_result, report_id, snapshot_id=snapshot_id)
+
+            render_results(
+                context,
+                metrics,
+                artifact_bytes,
+                artifact_result,
+                report_id,
+                snapshot_id=snapshot_id,
+            )
 
         except Exception as e:
             logger.error("pipeline error: %s", redact_log_message(str(e)))
             from ui.styles import render_premium_state
+
             render_premium_state(
-                "error", 
-                "Ops! Algo deu errado", 
+                "error",
+                "Ops! Algo deu errado",
                 "Ocorreu um erro inesperado no processamento da sua análise. Por favor, tente novamente em alguns instantes.",
-                "Tentar Novamente"
+                "Tentar Novamente",
             )
             if not _IS_PRODUCTION:
                 st.code(traceback.format_exc())

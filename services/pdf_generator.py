@@ -1,12 +1,13 @@
 import html
-import logging
-import markdown
 import json
+import logging
 import os
 import uuid
-from io import BytesIO
 from datetime import datetime
+from io import BytesIO
 from typing import Any, Dict, List, Tuple
+
+import markdown
 from xhtml2pdf import pisa
 
 logger = logging.getLogger(__name__)
@@ -24,16 +25,14 @@ class PDFGenerator:
                 template = f.read()
             html_content = self._render_template(template, data)
             pdf_buffer = BytesIO()
-            pisa_status = pisa.CreatePDF(html_content, dest=pdf_buffer, encoding='utf-8')
+            pisa_status = pisa.CreatePDF(html_content, dest=pdf_buffer, encoding="utf-8")
             if pisa_status.err:
                 raise Exception("Falha na geração dos bytes do PDF")
             return pdf_buffer.getvalue()
         except Exception as e:
             raise Exception(f"Erro ao gerar PDF: {str(e)}")
 
-    def generate_report_with_fallback(
-        self, data: Dict[str, Any]
-    ) -> Tuple[str, bytes, str]:
+    def generate_report_with_fallback(self, data: Dict[str, Any]) -> Tuple[str, bytes, str]:
         """
         Try PDF; fall back to Markdown on failure.
 
@@ -53,20 +52,25 @@ class PDFGenerator:
             t1 = datetime.utcnow()
             logger.warning(
                 "report_id=%s pdf_error=%s elapsed_ms=%d — trying markdown fallback",
-                report_id, str(pdf_err), int((t1 - t0).total_seconds() * 1000),
+                report_id,
+                str(pdf_err),
+                int((t1 - t0).total_seconds() * 1000),
             )
             try:
                 md_bytes = self.generate_markdown(data).encode("utf-8")
                 t2 = datetime.utcnow()
                 logger.info(
                     "report_id=%s artifact_result=markdown_only fallback_ms=%d",
-                    report_id, int((t2 - t0).total_seconds() * 1000),
+                    report_id,
+                    int((t2 - t0).total_seconds() * 1000),
                 )
                 return "markdown_only", md_bytes, report_id
             except Exception as md_err:
                 logger.error(
                     "report_id=%s artifact_result=none pdf_error=%s markdown_error=%s",
-                    report_id, str(pdf_err), str(md_err),
+                    report_id,
+                    str(pdf_err),
+                    str(md_err),
                 )
                 return "none", b"", report_id
 
@@ -76,7 +80,7 @@ class PDFGenerator:
         m = data.get("metrics_analysis", {})
         ns = m.get("north_star", {})
         lines = [
-            f"# MetricFlow AI — Relatório",
+            "# MetricFlow AI — Relatório",
             f"**Data:** {data.get('date', '')}  |  "
             f"**Responsável:** {data.get('responsible', 'N/A')}  |  "
             f"**Empresa:** {data.get('company', 'N/A')}",
@@ -99,37 +103,44 @@ class PDFGenerator:
             "## L1 Health Indicators",
         ]
         for l1 in m.get("l1_health_indicators", []):
-            lines.append(f"- **{l1.get('pilar')} / {l1.get('metrica')}** — Meta: {l1.get('meta_sugerida')}")
+            lines.append(
+                f"- **{l1.get('pilar')} / {l1.get('metrica')}** — Meta: {l1.get('meta_sugerida')}"
+            )
 
         lines += ["", "## OKRs"]
         for okr in m.get("okrs", []):
             lines.append(f"### {okr.get('objetivo')}")
             for kr in okr.get("key_results", []):
-                lines.append(f"- {kr.get('resultado')} (baseline: {kr.get('baseline')} → meta: {kr.get('meta')})")
+                lines.append(
+                    f"- {kr.get('resultado')} (baseline: {kr.get('baseline')} → meta: {kr.get('meta')})"
+                )
 
         return "\n".join(lines)
 
     def _md(self, text: str) -> str:
-        if not text: return ""
+        if not text:
+            return ""
         if isinstance(text, (dict, list)):
             text = json.dumps(text, ensure_ascii=False)
         return markdown.markdown(str(text))
 
     def _e(self, value: Any) -> str:
-        if value is None: return ""
+        if value is None:
+            return ""
         return html.escape(str(value))
 
     def _format_data_identified(self, data: Any) -> str:
         """Formata os dados identificados em uma lista HTML elegante."""
-        if not data: return "Nenhum dado mencionado"
-        
+        if not data:
+            return "Nenhum dado mencionado"
+
         # Tenta converter string JSON em dicionário se necessário
         if isinstance(data, str):
             try:
                 data = json.loads(data)
             except:
                 return self._e(data)
-        
+
         if isinstance(data, dict):
             html_out = '<ul style="list-style:none; padding:0; margin:0;">'
             for key, value in data.items():
@@ -137,9 +148,9 @@ class PDFGenerator:
                 if isinstance(value, list):
                     value = ", ".join([str(v) for v in value])
                 html_out += f'<li style="margin-bottom:5px;"><strong>{self._e(label)}:</strong> {self._e(value)}</li>'
-            html_out += '</ul>'
+            html_out += "</ul>"
             return html_out
-        
+
         return self._e(data)
 
     def _render_template(self, template: str, data: Dict[str, Any]) -> str:
@@ -151,7 +162,9 @@ class PDFGenerator:
             "{{DATE}}": data.get("date", datetime.now().strftime("%d/%m/%Y")),
             "{{RESPONSIBLE}}": self._e(data.get("responsible", "N/A")),
             "{{COMPANY}}": self._e(data.get("company", "N/A")),
-            "{{EXECUTIVE_SUMMARY}}": self._render_executive_summary(data.get("executive_summary", "")),
+            "{{EXECUTIVE_SUMMARY}}": self._render_executive_summary(
+                data.get("executive_summary", "")
+            ),
             "{{CONTEXT_TYPE}}": self._e(ctx.get("tipo", "N/A")),
             "{{CONTEXT_GAME}}": self._e(ctx.get("business_game", "N/A")),
             "{{CONTEXT_OBJECTIVE}}": self._e(ctx.get("objetivo", "N/A")),
@@ -183,56 +196,60 @@ class PDFGenerator:
         return f'<div class="success-box"><strong>📋 Resumo Executivo:</strong><br>{self._md(summary)}</div>'
 
     def _render_l1(self, items: List[Dict]) -> str:
-        if not items: return "<p>Não disponível</p>"
+        if not items:
+            return "<p>Não disponível</p>"
         html_out = "<table><thead><tr><th>Pilar</th><th>Métrica</th><th>Meta Sugerida</th></tr></thead><tbody>"
         for item in items:
             html_out += f"""
             <tr>
-                <td><span class="badge">{self._e(item.get('pilar'))}</span></td>
-                <td><strong>{self._e(item.get('metrica'))}</strong><br><small>{self._e(item.get('por_que_importa'))}</small></td>
-                <td>{self._e(item.get('meta_sugerida'))}</td>
+                <td><span class="badge">{self._e(item.get("pilar"))}</span></td>
+                <td><strong>{self._e(item.get("metrica"))}</strong><br><small>{self._e(item.get("por_que_importa"))}</small></td>
+                <td>{self._e(item.get("meta_sugerida"))}</td>
             </tr>"""
         html_out += "</tbody></table>"
         return html_out
 
     def _render_l2(self, items: List[Dict]) -> str:
-        if not items: return "<p>Não disponível</p>"
+        if not items:
+            return "<p>Não disponível</p>"
         html_out = ""
         for item in items:
             html_out += f"""
             <div class="card">
-                <small style="color:#6366f1">Vínculo: {self._e(item.get('vinculo_l1'))}</small><br>
-                <strong>{self._e(item.get('metrica'))}</strong>
-                <div class="warning-text">⚠️ Ação se cair: {self._e(item.get('acao_se_cair'))}</div>
+                <small style="color:#6366f1">Vínculo: {self._e(item.get("vinculo_l1"))}</small><br>
+                <strong>{self._e(item.get("metrica"))}</strong>
+                <div class="warning-text">⚠️ Ação se cair: {self._e(item.get("acao_se_cair"))}</div>
             </div>"""
         return html_out
 
     def _render_okrs(self, items: List[Dict]) -> str:
-        if not items: return "<p>Não disponível</p>"
+        if not items:
+            return "<p>Não disponível</p>"
         html_out = ""
         for okr in items:
             krs = ""
             for kr in okr.get("key_results", []):
                 krs += f"""
                 <div class="okr-card">
-                    <strong>{self._e(kr.get('resultado'))}</strong><br>
-                    <span class="kr-meta">Baseline: {self._e(kr.get('baseline'))} | Meta: {self._e(kr.get('meta'))}</span>
+                    <strong>{self._e(kr.get("resultado"))}</strong><br>
+                    <span class="kr-meta">Baseline: {self._e(kr.get("baseline"))} | Meta: {self._e(kr.get("meta"))}</span>
                 </div>"""
             html_out += f"""
             <div class="card">
-                <h4 style="margin:0 0 10px 0;">🎯 {self._e(okr.get('objetivo'))}</h4>
+                <h4 style="margin:0 0 10px 0;">🎯 {self._e(okr.get("objetivo"))}</h4>
                 {krs}
             </div>"""
         return html_out
 
     def _render_counter(self, items: List[Dict]) -> str:
-        if not items: return "<p>Não disponível</p>"
+        if not items:
+            return "<p>Não disponível</p>"
         html_out = ""
         for item in items:
             html_out += f"""
             <div class="card" style="border-left: 4px solid #ef4444">
-                <strong>🛡️ {self._e(item.get('nome'))}</strong><br>
-                <small>Protege contra: {self._e(item.get('protege_contra'))}</small><br>
-                <small style="color:#b91c1c">Trade-off: {self._e(item.get('trade_off'))}</small>
+                <strong>🛡️ {self._e(item.get("nome"))}</strong><br>
+                <small>Protege contra: {self._e(item.get("protege_contra"))}</small><br>
+                <small style="color:#b91c1c">Trade-off: {self._e(item.get("trade_off"))}</small>
             </div>"""
         return html_out

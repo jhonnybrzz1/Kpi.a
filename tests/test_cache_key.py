@@ -18,6 +18,7 @@ class TestNormalizeInput(unittest.TestCase):
 
     def test_same_hash_for_equivalent_inputs(self):
         import hashlib
+
         a = hashlib.sha256(normalize_input("  my input  ").encode()).hexdigest()
         b = hashlib.sha256(normalize_input("my  input").encode()).hexdigest()
         self.assertEqual(a, b)

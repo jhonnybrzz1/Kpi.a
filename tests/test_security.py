@@ -16,9 +16,10 @@ from utils.security import (
 
 
 class TestSecurityChokePoint(unittest.TestCase):
-
     def test_valid_input_passes(self):
-        result = security_choke_point("Quero criar uma funcionalidade de notificação de estoque baixo")
+        result = security_choke_point(
+            "Quero criar uma funcionalidade de notificação de estoque baixo"
+        )
         self.assertTrue(result["ok"])
         self.assertIsNotNone(result["sanitized_prompt"])
         self.assertEqual(result["reason"], "ok")
@@ -69,7 +70,6 @@ class TestSecurityChokePoint(unittest.TestCase):
 
 
 class TestRedactLogMessage(unittest.TestCase):
-
     def test_redacts_openai_key(self):
         msg = "Error with key sk-abcdefghij1234567890"
         self.assertNotIn("sk-abcdefghij1234567890", redact_log_message(msg))
@@ -95,7 +95,6 @@ class TestRedactLogMessage(unittest.TestCase):
 
 
 class TestSecurityConstants(unittest.TestCase):
-
     def test_max_analyses_per_session(self):
         self.assertEqual(MAX_ANALYSES_PER_SESSION, 10)
 

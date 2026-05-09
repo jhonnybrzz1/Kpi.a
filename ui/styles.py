@@ -143,22 +143,32 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 def inject_styles() -> None:
     st.markdown(_CSS, unsafe_allow_html=True)
 
-def render_premium_state(state_type: str, title: str, message: str, button_label: str = None) -> None:
+
+def render_premium_state(
+    state_type: str, title: str, message: str, button_label: str = None
+) -> None:
     """Render a premium empty or error state."""
     class_name = "mf-empty-state" if state_type == "empty" else "mf-error-state"
-    st.markdown(f"""
+    st.markdown(
+        f"""
         <div class="{class_name}">
             <h3>{title}</h3>
             <p>{message}</p>
         </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
     if button_label:
         if st.button(button_label, type="primary", use_container_width=True):
             st.rerun()
+
 
 def render_skeletons(count: int = 3) -> None:
     """Render shimmering skeleton placeholders."""
     for _ in range(count):
         st.markdown('<div class="mf-skeleton"></div>', unsafe_allow_html=True)
         st.markdown('<div class="mf-skeleton" style="width:70%;"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="mf-skeleton" style="width:40%; margin-bottom:1.5rem;"></div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="mf-skeleton" style="width:40%; margin-bottom:1.5rem;"></div>',
+            unsafe_allow_html=True,
+        )

@@ -2,7 +2,6 @@
 Unit tests for utils/retry.py — validates attempts, delays, and logging.
 """
 
-import logging
 import os
 import sys
 import unittest
@@ -14,7 +13,6 @@ from utils.retry import retry_with_backoff
 
 
 class TestRetryWithBackoff(unittest.TestCase):
-
     def test_success_on_first_attempt(self):
         """No sleep, no warnings when function succeeds immediately."""
         func = MagicMock(return_value="ok")
@@ -110,6 +108,7 @@ class TestRetryWithBackoff(unittest.TestCase):
 
     def test_wraps_preserves_function_metadata(self):
         """@wraps keeps __name__ and __doc__ of the original function."""
+
         def my_func():
             """my docstring"""
 
