@@ -1,99 +1,120 @@
-# MetricFlow AI v2.0 🧠
+# MetricFlow AI 🧠
 
-## 🚀 Sistema Inteligente de Métricas, KPIs e OKRs
+### Sistema Inteligente de Sugestão de Métricas, KPIs e OKRs
 
-O **MetricFlow AI** é uma plataforma avançada construída com Streamlit que utiliza o poder combinado da **Mistral AI** e **OpenAI GPT-4o** para transformar descrições de iniciativas em métricas acionáveis, KPIs estratégicos e OKRs bem estruturados.
-
-Esta versão 2.0 foca em **robustez técnica**, **segurança de dados** e **excelência na análise de contexto**.
+O **MetricFlow AI** é uma plataforma analítica desenvolvida em Streamlit que orquestra modelos de linguagem de larga escala (LLMs) para converter descrições de iniciativas de negócio em frameworks de medição estruturados. O sistema utiliza a **Mistral AI** para análise profunda de contexto e o **OpenAI GPT-4o** para a geração técnica de KPIs e OKRs.
 
 ---
 
-## 🌟 Principais Recursos
+## 🛠 Stack Tecnológica
 
-- **Análise Multimodal de Contexto**: Utiliza `mistral-large-latest` para entender profundamente o domínio e os objetivos da iniciativa.
-- **Motor de Métricas Especializado**: Aproveita o GPT-4o para gerar KPIs baseados em frameworks de mercado (AARRR, HEART, North Star).
-- **Relatórios Executivos**: Geração automática de PDFs profissionais usando `xhtml2pdf`.
-- **Segurança Enterprise**: Sanitização de inputs, proteção contra prompt injection e redação automática de dados sensíveis em logs.
-- **Suporte a Documentos**: Extração de texto de arquivos PDF e DOCX para análise de contexto enriquecida.
-- **Cache Inteligente**: Sistema de cache otimizado para reduzir latência e custos de API.
-
----
-
-## 🛠️ Stack Tecnológica
-
-- **Frontend/App**: [Streamlit](https://streamlit.io/)
-- **Modelos de IA**: Mistral AI (Contexto) & OpenAI GPT-4o (Métricas)
-- **Processamento de Documentos**: `pypdf`, `python-docx`
-- **Geração de PDF**: `xhtml2pdf`, `markdown`
-- **Validação de Dados**: `pydantic`, `PyYAML`
-- **Infraestrutura**: Render.com (PaaS)
+- **Linguagem**: Python 3.11+
+- **Interface**: [Streamlit](https://streamlit.io/)
+- **Modelos de IA**:
+    - **Mistral AI**: `mistral-large-latest` (Análise de Contexto)
+    - **OpenAI**: `gpt-4o` (Geração de Métricas e Resumo Executivo)
+- **Extração de Documentos**: `pypdf`, `python-docx`
+- **Geração de Relatórios**: `xhtml2pdf`, `markdown`
+- **Segurança e Validação**: `pydantic`, `PyYAML`
+- **Qualidade de Código**: `pytest`, `ruff`
 
 ---
 
-## 🏗️ Arquitetura do Sistema
+## 🏗 Arquitetura do Projeto
 
-O projeto segue uma estrutura modular para facilitar a manutenção e escalabilidade:
+O repositório segue uma estrutura modular e desacoplada:
 
 ```text
-├── app.py                 # Orquestrador principal da UI e fluxo de dados
-├── services/              # Camada de integração com serviços externos
-│   ├── mistral_service.py # Lógica de análise de contexto
-│   ├── openai_service.py  # Lógica de geração de métricas
-│   └── pdf_generator.py   # Motor de renderização de relatórios
-├── ui/                    # Componentes modulares da interface
-├── utils/                 # Utilitários de segurança, validação e telemetria
-├── tests/                 # Suíte completa de testes unitários
-└── config/                # Prompts estruturados em YAML
+├── app.py                 # Orquestrador principal e interface Streamlit
+├── config/                # Gerenciamento de prompts estruturados (YAML)
+├── services/              # Camada de integração com APIs externas e lógica core
+│   ├── mistral_service.py # Engine de análise contextual
+│   ├── openai_service.py  # Engine de geração de métricas/resumos
+│   └── pdf_generator.py   # Renderização de relatórios técnicos
+├── ui/                    # Componentes modulares da interface de usuário
+├── utils/                 # Utilitários de segurança, telemetria, cache e validação
+├── data/                  # Benchmarks e datasets de referência
+└── tests/                 # Suíte de testes automatizados
 ```
 
 ---
 
-## 🔐 Segurança e Governança
+## 🚀 Como Iniciar
 
-O MetricFlow AI implementa diversas camadas de proteção:
-- **Redação de Logs**: Filtros que impedem que chaves de API ou dados sensíveis do usuário cheguem aos logs.
-- **Rate Limiting**: Limites por sessão para evitar abusos e controlar custos.
-- **Validação de Input**: Sanitização rigorosa de todo texto inserido.
-- **Proteção de Variáveis**: Gestão segura via `.env` e segredos do Streamlit.
+### Pré-requisitos
+- Python 3.11 ou superior
+- Git
+- Chaves de API: Mistral AI e OpenAI
+
+### Instalação Local
+
+1. **Clonar o Repositório**:
+   ```bash
+   git clone https://github.com/jhonnybrzz1/Kpi.a.git
+   cd Kpi.a
+   ```
+
+2. **Criar Ambiente Virtual**:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Linux/macOS
+   # ou
+   .venv\Scripts\activate     # Windows
+   ```
+
+3. **Instalar Dependências**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Configuração
+Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
+```env
+OPENAI_API_KEY=sua_chave_aqui
+MISTRAL_API_KEY=sua_chave_aqui
+STREAMLIT_ENVIRONMENT=development
+```
 
 ---
 
-## 🧪 Testes e Qualidade
+## 💻 Execução
 
-O projeto conta com uma suíte de testes robusta baseada em `unittest`:
+Inicie a aplicação localmente com o comando:
 ```bash
-# Executar todos os testes
+streamlit run app.py
+```
+
+Acesse via navegador no endereço padrão: `http://localhost:8501`.
+
+---
+
+## 🧪 Desenvolvimento e Testes
+
+### Executar Testes
+O projeto utiliza `pytest` para garantir a integridade dos serviços e utilitários:
+```bash
 pytest tests/
 ```
-Os testes cobrem validação de input, lógica de serviços, segurança e geração de chaves de cache.
+
+### Linting e Formatação
+Mantemos a qualidade do código com `ruff`:
+```bash
+ruff check .
+```
 
 ---
 
-## 🚀 Deploy e Execução Local
+## 🔐 Segurança
 
-### Local
-1. Clone e acesse o diretório: `git clone https://github.com/jhonnybrzz1/Kpi.a.git`
-2. Instale as dependências: `pip install -r requirements.txt`
-3. Configure o `.env` (use `.env.example` como base).
-4. Rode: `streamlit run app.py`
-
-### Produção (Render)
-O projeto está pré-configurado para o [Render](https://render.com/). Consulte `render.yaml` para detalhes da infraestrutura.
+O MetricFlow AI implementa:
+- **Sanitização de Inputs**: Proteção contra ataques de Prompt Injection.
+- **Redação de Logs**: Filtros automáticos que impedem o vazamento de chaves e dados sensíveis.
+- **Rate Limiting**: Controle de chamadas por sessão para gestão de custos de API.
 
 ---
 
-## 📊 Casos de Uso
-
-- **Product Managers**: Definir métricas de sucesso para novas features.
-- **Growth Hackers**: Estruturar funis AARRR baseados em IA.
-- **Líderes de Engenharia**: Criar OKRs técnicos alinhados ao negócio.
-- **Consultores**: Gerar relatórios de KPIs profissionais para stakeholders.
+## 📄 Licença
+Este projeto está licenciado sob a **MIT License**.
 
 ---
-
-## 📄 Licença e Contribuição
-
-Licenciado sob a **MIT License**. Sinta-se à vontade para abrir Issues ou Pull Requests seguindo as diretrizes de código limpo do projeto.
-
----
-*MetricFlow AI — De dados brutos a decisões estratégicas.*
+*MetricFlow AI — Transformando visão em métricas acionáveis.*
