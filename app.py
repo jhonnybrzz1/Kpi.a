@@ -429,7 +429,8 @@ def main() -> None:
             render_premium_state(
                 "error",
                 "Ops! Algo deu errado",
-                "Ocorreu um erro inesperado no processamento da sua análise. Por favor, tente novamente em alguns instantes.",
+                "Ocorreu um erro inesperado no processamento da sua análise. "
+                "Por favor, tente novamente em alguns instantes.",
                 "Tentar Novamente",
             )
             if not _IS_PRODUCTION:
