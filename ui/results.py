@@ -42,7 +42,10 @@ def render_results(
         )
 
         st.markdown(
-            f'<div class="mf-premium-metric" style="margin-top:1.5rem; margin-bottom:1.5rem;"><strong>📝 Resumo do PRD:</strong><br>{context.get("resumo_prd", "N/A")}</div>',
+            '<div class="mf-premium-metric" '
+            'style="margin-top:1.5rem; margin-bottom:1.5rem;">'
+            "<strong>📝 Resumo do PRD:</strong>"
+            f'<br>{context.get("resumo_prd", "N/A")}</div>',
             unsafe_allow_html=True,
         )
         with st.expander("📊 Dados Identificados", expanded=True):
@@ -64,7 +67,8 @@ def render_results(
                 <div class="mf-card-title">North Star Metric</div>
                 <div class="mf-card-value">{ns.get("nome", "N/A")}</div>
                 <div class="mf-card-sub">{ns.get("justificativa", "")}</div>
-                <div style="margin-top:1rem; padding:0.75rem; background:rgba(0,0,0,0.2); border-radius:8px; font-family:monospace; color:#818cf8;">
+                <div style="margin-top:1rem; padding:0.75rem; background:rgba(0,0,0,0.2);
+                            border-radius:8px; font-family:monospace; color:#818cf8;">
                     Fórmula: {ns.get("definicao", "N/A")}
                 </div>
             </div>
@@ -230,7 +234,8 @@ def render_results(
 
     st.markdown("---")
     st.markdown(
-        '<div style="padding: 1.5rem; background: rgba(99,102,241,0.05); border-radius: 12px; border: 1px solid rgba(99,102,241,0.1);">',
+        '<div style="padding: 1.5rem; background: rgba(99,102,241,0.05); '
+        'border-radius: 12px; border: 1px solid rgba(99,102,241,0.1);">',
         unsafe_allow_html=True,
     )
     st.markdown("### 📥 Exportar Relatório")

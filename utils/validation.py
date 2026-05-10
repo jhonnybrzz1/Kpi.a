@@ -1,3 +1,4 @@
+import os
 import re
 from typing import Any, Dict
 
@@ -27,10 +28,8 @@ def validate_input(text: str) -> Dict[str, Any]:
 
     # Verifica tamanho máximo (aumentado para suportar documentos anexados)
     if len(text) > MAX_INPUT_LENGTH:
-        return {
-            "valid": False,
-            "message": f"A descrição é muito longa. Por favor, limite a {MAX_INPUT_LENGTH} caracteres.",
-        }
+        msg = f"A descrição é muito longa. Por favor, limite a {MAX_INPUT_LENGTH} caracteres."
+        return {"valid": False, "message": msg}
 
     # Verifica se não é apenas espaços ou caracteres especiais
     if not re.search(r"[a-zA-ZÀ-ÿ]", text):
@@ -88,9 +87,6 @@ def validate_api_response(response: Dict[str, Any], required_fields: list) -> bo
             return False
 
     return True
-
-
-import os
 
 
 def check_api_keys() -> bool:

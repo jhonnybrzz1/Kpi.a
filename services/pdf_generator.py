@@ -112,7 +112,8 @@ class PDFGenerator:
             lines.append(f"### {okr.get('objetivo')}")
             for kr in okr.get("key_results", []):
                 lines.append(
-                    f"- {kr.get('resultado')} (baseline: {kr.get('baseline')} → meta: {kr.get('meta')})"
+                    f"- {kr.get('resultado')} (baseline: {kr.get('baseline')} "
+                    f"→ meta: {kr.get('meta')})"
                 )
 
         return "\n".join(lines)
@@ -138,7 +139,7 @@ class PDFGenerator:
         if isinstance(data, str):
             try:
                 data = json.loads(data)
-            except:
+            except (json.JSONDecodeError, TypeError):
                 return self._e(data)
 
         if isinstance(data, dict):
@@ -147,7 +148,10 @@ class PDFGenerator:
                 label = key.replace("_", " ").title()
                 if isinstance(value, list):
                     value = ", ".join([str(v) for v in value])
-                html_out += f'<li style="margin-bottom:5px;"><strong>{self._e(label)}:</strong> {self._e(value)}</li>'
+                html_out += (
+                    f'<li style="margin-bottom:5px;">'
+                    f"<strong>{self._e(label)}:</strong> {self._e(value)}</li>"
+                )
             html_out += "</ul>"
             return html_out
 
@@ -193,17 +197,24 @@ class PDFGenerator:
     def _render_executive_summary(self, summary: str) -> str:
         if not summary or not summary.strip():
             return ""
-        return f'<div class="success-box"><strong>📋 Resumo Executivo:</strong><br>{self._md(summary)}</div>'
+        return (
+            f'<div class="success-box"><strong>📋 Resumo Executivo:</strong>'
+            f"<br>{self._md(summary)}</div>"
+        )
 
     def _render_l1(self, items: List[Dict]) -> str:
         if not items:
             return "<p>Não disponível</p>"
-        html_out = "<table><thead><tr><th>Pilar</th><th>Métrica</th><th>Meta Sugerida</th></tr></thead><tbody>"
+        html_out = (
+            "<table><thead><tr><th>Pilar</th><th>Métrica</th>"
+            "<th>Meta Sugerida</th></tr></thead><tbody>"
+        )
         for item in items:
             html_out += f"""
             <tr>
                 <td><span class="badge">{self._e(item.get("pilar"))}</span></td>
-                <td><strong>{self._e(item.get("metrica"))}</strong><br><small>{self._e(item.get("por_que_importa"))}</small></td>
+                <td><strong>{self._e(item.get("metrica"))}</strong><br>
+                    <small>{self._e(item.get("por_que_importa"))}</small></td>
                 <td>{self._e(item.get("meta_sugerida"))}</td>
             </tr>"""
         html_out += "</tbody></table>"
@@ -232,7 +243,10 @@ class PDFGenerator:
                 krs += f"""
                 <div class="okr-card">
                     <strong>{self._e(kr.get("resultado"))}</strong><br>
-                    <span class="kr-meta">Baseline: {self._e(kr.get("baseline"))} | Meta: {self._e(kr.get("meta"))}</span>
+                    <span class="kr-meta">
+                        Baseline: {self._e(kr.get("baseline"))} |
+                        Meta: {self._e(kr.get("meta"))}
+                    </span>
                 </div>"""
             html_out += f"""
             <div class="card">

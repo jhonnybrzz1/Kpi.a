@@ -5,16 +5,21 @@ import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
 # Redirect DB to a temp file for tests
 _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _tmp.close()
-import utils.ai_metrics as _mod
+
+# Import _mod BEFORE other utils to override DB_PATH
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+import utils.ai_metrics as _mod  # noqa: E402
 
 _mod._DB_PATH = _tmp.name
 
-from utils.ai_metrics import get_metrics_summary, record_call, validate_json_structure
+from utils.ai_metrics import (  # noqa: E402
+    get_metrics_summary,
+    record_call,
+    validate_json_structure,
+)
 
 
 class TestValidateJsonStructure(unittest.TestCase):

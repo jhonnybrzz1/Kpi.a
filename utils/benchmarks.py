@@ -65,9 +65,11 @@ def generate_report():
 
             # Rule 3: EPS Comparison
             if (baseline["target"] - avg_median) > EPS:
-                conclusion.append(
-                    f"A meta de {baseline['target']:.0f}% está **acima da mediana** ({avg_median:.1f}%)."
+                msg = (
+                    f"A meta de {baseline['target']:.0f}% está **acima da mediana** "
+                    f"({avg_median:.1f}%)."
                 )
+                conclusion.append(msg)
 
             if (avg_top - baseline["target"]) > EPS:
                 conclusion.append(f"Está **abaixo do top quartil** ({avg_top:.1f}%).")
@@ -79,18 +81,22 @@ def generate_report():
             )
         else:
             status = "⚠️ Parcial"
-            summary = "Valores observados apresentados. Comparabilidade limitada por fontes com score médio/baixo. Não emitimos conclusões 'acima/abaixo' por cautela (Regra 2)."
+            summary = (
+                "Valores observados apresentados. Comparabilidade limitada por fontes com "
+                "score médio/baixo. Não emitimos conclusões 'acima/abaixo' por cautela (Regra 2)."
+            )
 
         comparison_table = f"""
 | Métrica | Baseline (Kpi.a) | Mediana Mercado | Top Quartil | Meta (Target) |
 | :--- | :--- | :--- | :--- | :--- |
 | {baseline["metric"]} | {baseline["value"]:.1f}% | {avg_median:.1f}% | {avg_top:.1f}% | {baseline["target"]:.1f}% |
-"""
+"""  # noqa: E501
 
     # Generate Evidences section (T4)
     evidences = "\n".join(
         [
-            f"*   **{b['source']}**: [{b['segment']}]({b['url']}) - Acesso: {b['date_accessed']} (Def: {b.get('definition_notes', 'N/A')})"
+            f"*   **{b['source']}**: [{b['segment']}]({b['url']}) - "
+            f"Acesso: {b['date_accessed']} (Def: {b.get('definition_notes', 'N/A')})"
             for b in relevant
         ]
     )
@@ -111,11 +117,12 @@ def generate_report():
 
 ## 4. Definição Operacional (Kpi.a)
 Referência detalhada em: `/data/baseline_d7.md`
-O D7 Retention é medido como retorno (evento ativo) exatamente no dia 7 para novos usuários do Dia 0.
+O D7 Retention é medido como retorno (evento ativo) exatamente no dia 7
+para novos usuários do Dia 0.
 
 ---
 *Relatório gerado automaticamente pelo validador de benchmarks do Kpi.a para suporte à decisão (PRD v1.0).*
-"""
+"""  # noqa: E501
 
     with open(REPORT_MD, "w", encoding="utf-8") as f:
         f.write(report_content)

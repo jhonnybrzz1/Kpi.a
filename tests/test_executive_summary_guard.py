@@ -90,7 +90,8 @@ class TestExecutiveSummaryGuardUnreplacedPlaceholder(unittest.TestCase):
         """Inject a prompt with an extra placeholder that will cause KeyError during format()."""
         svc = _make_service()
 
-        # We inject a prompt that has an extra key {typo_key} that generate_executive_summary doesn't provide
+        # We inject a prompt that has an extra key {typo_key} that
+        # generate_executive_summary doesn't provide
         prompt_with_typo = "Resumo de {initiative_text} com erro {typo_key}"
 
         with self._patch_prompts(prompt_with_typo):

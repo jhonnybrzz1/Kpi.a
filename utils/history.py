@@ -90,7 +90,8 @@ def save_snapshot(
     with _db() as conn:
         conn.execute(
             """INSERT INTO history
-               (snapshot_id, saved_at, initiative_preview, status, artifact_result, payload_json, content_hash, version)
+               (snapshot_id, saved_at, initiative_preview, status, artifact_result,
+                payload_json, content_hash, version)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 snapshot_id,
