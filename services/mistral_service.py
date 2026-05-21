@@ -41,9 +41,21 @@ class MistralService:
         Returns:
             Dict containing context analysis
         """
-        # Load prompt from configuration
+        # Load prompts from configuration
+        system_prompt = get_prompt("mistral", "analyze_context", "system")
         prompt_template = get_prompt("mistral", "analyze_context", "user")
+
+        # Guard: validate prompts are non-empty (matches openai_service guard)
+        if not system_prompt.strip():
+            raise ValueError("missing_prompt: mistral.analyze_context.system")
+        if not prompt_template.strip():
+            raise ValueError("missing_prompt: mistral.analyze_context.user")
+
         prompt = prompt_template.format(initiative_text=initiative_text)
+
+        # Guard: validate placeholder was replaced
+        if "{initiative_text}" in prompt:
+            raise ValueError("missing_placeholder: {initiative_text}")
 
         t0 = time.monotonic()
         raw_content: str = ""
@@ -57,9 +69,14 @@ class MistralService:
 
             payload = {
                 "model": self.model,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
                 "temperature": 0.3,
                 "max_tokens": 2000,
+                # Mistral structured output mode — guarantees parseable JSON
+                "response_format": {"type": "json_object"},
             }
 
             response = requests.post(self.base_url, headers=headers, json=payload, timeout=90)
@@ -86,7 +103,13 @@ class MistralService:
                 try:
                     data = json.loads(clean)
                 except json.JSONDecodeError:
-                    logger.warning("JSON parse failed (%d chars), extracting from text", len(clean))
+                    # Should be rare now that response_format=json_object is set —
+                    # treat as a real signal the model misbehaved.
+                    logger.warning(
+                        "prompt_fallback_used: JSON parse failed (%d chars) despite "
+                        "response_format=json_object, falling back to regex extraction",
+                        len(clean),
+                    )
                     data = self._extract_json_from_text(clean)
 
                 # Validate required fields
@@ -120,15 +143,15 @@ class MistralService:
             raise Exception(f"Error in Mistral service: {str(e)}")
 
     def _validate_and_complete_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate response using Pydantic schema and fill missing fields with defaults"""
-        try:
-            validated = ContextAnalysis.model_validate(data)
-            return validated.model_dump()
-        except ValidationError as e:
-            logger.warning("Validation error, using defaults for invalid fields: %s", str(e))
-            # Try to create with available data, Pydantic will use defaults
-            validated = ContextAnalysis.model_validate(data, strict=False)
-            return validated.model_dump()
+        """
+        Strictly validate response against ContextAnalysis schema.
+
+        Raises ValidationError on values outside closed taxonomies — this is
+        intentional so retry_with_backoff can re-prompt the model. Silent
+        coercion would hide misclassifications.
+        """
+        validated = ContextAnalysis.model_validate(data)
+        return validated.model_dump()
 
     def _get_default_response(self) -> Dict[str, Any]:
         """Returns default response structure using Pydantic model"""
