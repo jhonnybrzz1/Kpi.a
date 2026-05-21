@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 import requests
 
-from config import get_prompt
+from config import get_prompt, get_prompts_version
 from services.schemas import ContextAnalysis
 from utils.ai_metrics import record_call, validate_json_structure
 from utils.retry import retry_with_backoff
@@ -124,6 +124,7 @@ class MistralService:
                     json_error_type=vr["json_error_type"],
                     usage=usage,
                     temperature=0.3,
+                    prompt_version=get_prompts_version(),
                 )
                 logger.info(
                     "mistral analyze_context operation_id=%s json_valid=%s latency_ms=%d",

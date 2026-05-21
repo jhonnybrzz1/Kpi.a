@@ -7,7 +7,7 @@ from typing import Any, Dict
 from openai import OpenAI
 from pydantic import ValidationError
 
-from config import get_prompt
+from config import get_prompt, get_prompts_version
 from services.schemas import MetricsAnalysis
 from utils.ai_metrics import record_call, validate_json_structure
 from utils.retry import retry_with_backoff
@@ -120,6 +120,7 @@ class OpenAIService:
                 json_error_type=vr["json_error_type"],
                 usage=usage,
                 temperature=0.4,
+                prompt_version=get_prompts_version(),
             )
             logger.info(
                 "openrouter generate_metrics operation_id=%s json_valid=%s latency_ms=%d okrs=%d",
@@ -201,8 +202,6 @@ class OpenAIService:
         Compatible with st.write_stream().
         Falls back to empty string on error (caller handles display).
         """
-        from config import get_prompt
-
         prompt_template = get_prompt("openai", "executive_summary", "user")
         system_prompt = get_prompt("openai", "executive_summary", "system")
 
