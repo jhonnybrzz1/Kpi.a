@@ -1,26 +1,43 @@
 """Pydantic schemas for API response validation - Otimizado para PRD e Markdown"""
 
-from typing import Any, List
+from typing import Any, List, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+# ─── Closed taxonomies (must match prompts.yaml) ────────────────────────────
+TipoIniciativa = Literal["funcionalidade", "processo", "produto", "estrategia"]
+BusinessGame = Literal["attention", "transaction", "productivity"]
+Objetivo = Literal[
+    "aquisicao", "ativacao", "retencao", "receita", "satisfacao", "engajamento"
+]
+EtapaFunil = Literal["aquisicao", "ativacao", "retencao", "receita", "referencia"]
+Complexidade = Literal["baixa", "media", "alta"]
+
 
 class ContextAnalysis(BaseModel):
-    """Schema for Mistral context analysis response"""
+    """Schema for Mistral context analysis response (strict taxonomies)"""
 
-    tipo: Any = Field(default="funcionalidade")
-    business_game: Any = Field(default="productivity")
-    objetivo: Any = Field(default="engajamento")
-    etapa_funil: Any = Field(default="ativacao")
-    complexidade: Any = Field(default="media")
-    area_impacto: Any = Field(default_factory=list)
-    valor_entregue: Any = Field(default="Não identificado")
-    resumo_prd: Any = Field(
+    model_config = ConfigDict(extra="ignore")
+
+    tipo: TipoIniciativa = Field(default="funcionalidade")
+    business_game: BusinessGame = Field(default="productivity")
+    objetivo: Objetivo = Field(default="engajamento")
+    etapa_funil: EtapaFunil = Field(default="ativacao")
+    complexidade: Complexidade = Field(default="media")
+    area_impacto: List[str] = Field(default_factory=list)
+    valor_entregue: str = Field(default="Não identificado")
+    resumo_prd: str = Field(
         default="", description="Resumo executivo focado no objetivo (PRD Style)"
     )
-    dados_atuais: Any = Field(default="Nenhum dado mencionado")
-    justificativa: Any = Field(default="")
-    palavras_chave: Any = Field(default_factory=list)
+    dados_atuais: str = Field(default="Nenhum dado mencionado")
+    justificativa: str = Field(default="")
+    palavras_chave: List[str] = Field(default_factory=list)
+    confidence: float = Field(
+        default=1.0,
+        ge=0,
+        le=1,
+        description="Model self-reported confidence in classification (0-1)",
+    )
 
 
 class NorthStar(BaseModel):
