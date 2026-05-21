@@ -5,7 +5,6 @@ import time
 from typing import Any, Dict
 
 import requests
-from pydantic import ValidationError
 
 from config import get_prompt
 from services.schemas import ContextAnalysis

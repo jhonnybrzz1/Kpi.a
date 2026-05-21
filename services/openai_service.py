@@ -17,19 +17,25 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIService:
-    """Service for OpenAI GPT-4 integration"""
+    """Service for OpenRouter chat completions integration."""
 
     def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.api_key = os.getenv("OPENROUTER_API_KEY")
         if not self.api_key:
             raise ValueError(
-                "OPENAI_API_KEY not configured. "
+                "OPENROUTER_API_KEY not configured. "
                 "Please set the environment variable before using this service."
             )
-        self.client = OpenAI(api_key=self.api_key)
-        # Using gpt-4.1-mini for better stability and cost efficiency
-        self.model = "gpt-5.4-nano"
-        logger.info("OpenAIService initialized with model: %s", self.model)
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url=os.getenv("OPENROUTER_API_URL", "https://openrouter.ai/api/v1"),
+            default_headers={
+                "HTTP-Referer": os.getenv("APP_URL", "http://localhost:8501"),
+                "X-Title": "MetricFlow AI",
+            },
+        )
+        self.model = os.getenv("OPENROUTER_MODEL", "google/gemma-4-31b-it")
+        logger.info("OpenRouter service initialized with model: %s", self.model)
 
     @retry_with_backoff(max_retries=3, base_delay=2)
     def generate_metrics(self, initiative_text: str, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -47,17 +53,12 @@ class OpenAIService:
         prompt_template = get_prompt("openai", "generate_metrics", "user")
         system_prompt = get_prompt("openai", "generate_metrics", "system")
 
-        # Format context areas
-        areas = context.get("area_impacto", [])
-        areas_str = ", ".join(areas) if isinstance(areas, list) else str(areas)
-
+        # Pass the FULL upstream context (not just 3 cherry-picked fields) so
+        # the model can leverage business_game, complexidade, area_impacto,
+        # valor_entregue, palavras_chave, dados_atuais, etc.
         prompt = prompt_template.format(
             initiative_text=initiative_text,
-            context_tipo=context.get("tipo", "N/A"),
-            context_objetivo=context.get("objetivo", "N/A"),
-            context_etapa_funil=context.get("etapa_funil", "N/A"),
-            context_complexidade=context.get("complexidade", "N/A"),
-            context_areas=areas_str,
+            context_json=json.dumps(context, indent=2, ensure_ascii=False),
         )
 
         t0 = time.monotonic()
@@ -76,7 +77,7 @@ class OpenAIService:
 
             content = response.choices[0].message.content
             if content is None:
-                raise Exception("Empty response from OpenAI")
+                raise Exception("Empty response from OpenRouter")
 
             # Extract usage when available
             usage = None
@@ -113,7 +114,7 @@ class OpenAIService:
             vr = validate_json_structure(raw_content, "metrics_analysis")
             operation_id = record_call(
                 model=self.model,
-                provider="openai",
+                provider="openrouter",
                 latency_ms=int((time.monotonic() - t0) * 1000),
                 json_valid=vr["json_valid"],
                 json_error_type=vr["json_error_type"],
@@ -121,7 +122,7 @@ class OpenAIService:
                 temperature=0.4,
             )
             logger.info(
-                "openai generate_metrics operation_id=%s json_valid=%s latency_ms=%d okrs=%d",
+                "openrouter generate_metrics operation_id=%s json_valid=%s latency_ms=%d okrs=%d",
                 operation_id,
                 vr["json_valid"],
                 int((time.monotonic() - t0) * 1000),
@@ -130,11 +131,11 @@ class OpenAIService:
             return data
 
         except json.JSONDecodeError as e:
-            raise Exception(f"Error decoding JSON response from OpenAI: {str(e)}")
+            raise Exception(f"Error decoding JSON response from OpenRouter: {str(e)}")
         except ValidationError as e:
             raise Exception(f"Invalid response schema: {str(e)}")
         except Exception as e:
-            raise Exception(f"Error in OpenAI service: {str(e)}")
+            raise Exception(f"Error in OpenRouter service: {str(e)}")
 
     @retry_with_backoff(max_retries=3, base_delay=2)
     def generate_executive_summary(
