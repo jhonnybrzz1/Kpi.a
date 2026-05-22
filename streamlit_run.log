@@ -1,0 +1,25 @@
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.0.45:8501
+  External URL: http://187.122.61.177:8501
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+2026-05-21 22:03:44,832 - services.openai_service - INFO - OpenRouter service initialized with model: google/gemma-4-31b-it
+2026-05-21 22:03:44,892 - __main__ - INFO - cache miss: analyze_context key=b5f619b91e09db6b:mistral-large-2512:7e3e1db68d0c2136:343c1540d0b28ccc
+2026-05-21 22:03:44,892 - services.mistral_service - INFO - MistralService initialized with model: mistral-large-2512
+2026-05-21 22:03:54,489 - services.mistral_service - INFO - mistral operation_id=c638508e-8956-49ca-9e11-a24b9d2ae9fe json_valid=True latency=9592ms temp=0.3
+2026-05-21 22:03:54,548 - __main__ - INFO - cache miss: generate_metrics key=b5f619b91e09db6b:google/gemma-4-31b-it:7e3e1db68d0c2136:0637cdf7555ff817:-7630269924890116254
+2026-05-21 22:04:05,130 - httpx - INFO - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-21 22:06:05,457 - services.openai_service - INFO - openrouter metrics op_id=92bb3d0e-878d-4119-8e9f-58a34d883ea4 valid=True lat=130903ms
+2026-05-21 22:06:13,971 - httpx - INFO - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-21 22:06:33,506 - httpx - INFO - HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-21 22:06:44,306 - services.pdf_generator - INFO - report_id=e0a6580f artifact_result=pdf_only

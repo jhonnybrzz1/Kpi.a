@@ -1,7 +1,6 @@
 import logging
 import os
 import traceback
-from datetime import datetime
 from typing import Any, Dict
 
 import streamlit as st
@@ -10,13 +9,15 @@ from config import load_prompts
 from services.document_extractor import DocumentExtractor
 from services.mistral_service import MistralService
 from services.openai_service import OpenAIService
+from services.orchestrator import AnalysisPipeline
 from services.pdf_generator import PDFGenerator
 from ui.footer import render_footer
+from ui.handlers import StreamlitUIHandler
 from ui.header import render_header
 from ui.results import render_results
 from ui.sidebar import render_sidebar
 from ui.styles import inject_styles
-from utils.cache_key import build_cache_key, normalize_input
+from utils.cache_key import build_cache_key
 from utils.history import save_snapshot
 from utils.security import (
     MAX_ANALYSES_PER_SESSION,
@@ -317,79 +318,44 @@ def main() -> None:
         st.session_state["analysis_count"] += 1
 
         try:
-            import json
-
             prompts_raw = _prompts_raw()
             mistral_params = {"model": "mistral-large-2512", "temperature": 0.3, "max_tokens": 2000}
-            openai_params = {
-                "model": "gpt-5.4-nano",
+            openrouter_params = {
+                "model": os.getenv("OPENROUTER_MODEL", "google/gemma-4-31b-it"),
                 "temperature": 0.4,
                 "max_completion_tokens": 8000,
             }
 
-            key_stage1 = build_cache_key(
+            context_cache_key = build_cache_key(
                 safe_input, mistral_params["model"], prompts_raw, mistral_params
             )
-            key_stage2_base = build_cache_key(
-                safe_input, openai_params["model"], prompts_raw, openai_params
+            metrics_cache_key_prefix = build_cache_key(
+                safe_input, openrouter_params["model"], prompts_raw, openrouter_params
             )
 
-            with st.status("🧠 Etapa 1/4 — Contexto (Mistral AI)...", expanded=False) as s:
-                from ui.styles import render_skeletons
+            # Initialize pipeline with delegated executors and UI handler
+            pipeline = AnalysisPipeline(
+                mistral_executor=cached_analyze_context,
+                openai_metrics_executor=cached_generate_metrics,
+                openai_summary_executor=get_openai_service().stream_executive_summary,
+                pdf_generator=get_pdf_generator(),
+                ui_handler=StreamlitUIHandler(),
+            )
 
-                render_skeletons(1)
-                context = cached_analyze_context(normalize_input(safe_input), key_stage1)
-                s.update(label="✅ Contexto analisado", state="complete")
+            # Execute full pipeline
+            results = pipeline.execute(
+                initiative_text=safe_input,
+                context_cache_key=context_cache_key,
+                metrics_cache_key_prefix=metrics_cache_key_prefix,
+                params={"responsible": responsible, "company": company},
+            )
 
-            with st.status("📊 Etapa 2/4 — Arquitetura de Métricas...", expanded=False) as s:
-                from ui.styles import render_skeletons
-
-                render_skeletons(2)
-                context_json = json.dumps(context, ensure_ascii=False)
-                key_stage2 = f"{key_stage2_base}:{hash(context_json)}"
-                metrics = cached_generate_metrics(
-                    normalize_input(safe_input), context_json, key_stage2
-                )
-                s.update(label="✅ Métricas geradas", state="complete")
-
-            with st.status("✍️ Etapa 3/4 — Resumo Executivo...", expanded=True) as s:
-                executive_summary = ""
-                try:
-                    import time as _time
-
-                    _t0 = _time.monotonic()
-                    # st.write_stream renders tokens as they arrive and returns full text
-                    executive_summary = st.write_stream(
-                        get_openai_service().stream_executive_summary(safe_input, context, metrics)
-                    )
-                    ttfv_ms = int((_time.monotonic() - _t0) * 1000)
-                    st.session_state.setdefault("ttfv_history", []).append(ttfv_ms)
-                    logger.info("stream_executive_summary ttfv_ms=%d", ttfv_ms)
-                except Exception as summary_err:
-                    logger.warning(
-                        "Resumo executivo não gerado: %s", redact_log_message(str(summary_err))
-                    )
-                s.update(label="✅ Resumo gerado", state="complete")
-
-            with st.status("📄 Etapa 4/4 — Relatório PDF...", expanded=False) as s:
-                report_data = {
-                    "initiative_description": safe_input,
-                    "responsible": responsible or "N/A",
-                    "company": company or "N/A",
-                    "date": datetime.now().strftime("%d/%m/%Y"),
-                    "context_analysis": context,
-                    "metrics_analysis": metrics,
-                    "executive_summary": executive_summary,
-                }
-                artifact_result, artifact_bytes, report_id = (
-                    get_pdf_generator().generate_report_with_fallback(report_data)
-                )
-                if artifact_result == "pdf_only":
-                    s.update(label="✅ Relatório pronto", state="complete")
-                elif artifact_result == "markdown_only":
-                    s.update(label="⚠️ PDF indisponível — Markdown gerado", state="complete")
-                else:
-                    s.update(label="❌ Relatório não disponível", state="error")
+            context = results["context"]
+            metrics = results["metrics"]
+            executive_summary = results["executive_summary"]
+            artifact_bytes = results["artifact_bytes"]
+            artifact_result = results["artifact_result"]
+            report_id = results["report_id"]
 
             st.balloons()
             from utils.telemetry import record_telemetry_event

@@ -93,8 +93,8 @@ def check_api_keys() -> bool:
     """Verifica se as chaves de API obrigatórias estão configuradas."""
     import streamlit as st  # lazy import: evita dependência em testes unitários
 
-    if not os.getenv("OPENAI_API_KEY"):
-        st.error("OPENAI_API_KEY não configurada")
+    if not os.getenv("OPENROUTER_API_KEY"):
+        st.error("OPENROUTER_API_KEY não configurada")
         return False
     if not os.getenv("MISTRAL_API_KEY"):
         st.error("MISTRAL_API_KEY não configurada")

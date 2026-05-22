@@ -21,7 +21,7 @@ _INJECTION_PATTERNS = re.compile(
 
 # Patterns to redact from log messages
 _REDACT_PATTERNS = [
-    (re.compile(r"sk-[A-Za-z0-9]{10,}"), "sk-***"),
+    (re.compile(r"sk-[A-Za-z0-9_-]{10,}"), "sk-***"),
     (re.compile(r"Bearer\s+[A-Za-z0-9\-._~+/]+=*", re.IGNORECASE), "Bearer ***"),
     (re.compile(r"(api[_-]?key\s*[=:]\s*)[^\s,\"']+", re.IGNORECASE), r"\1***"),
 ]

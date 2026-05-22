@@ -2,7 +2,7 @@
 
 ### Sistema Inteligente de Sugestão de Métricas, KPIs e OKRs
 
-O **MetricFlow AI** é uma plataforma analítica desenvolvida em Streamlit que orquestra modelos de linguagem de larga escala (LLMs) para converter descrições de iniciativas de negócio em frameworks de medição estruturados. O sistema utiliza a **Mistral AI** para análise profunda de contexto e o **OpenAI GPT-4o** para a geração técnica de KPIs e OKRs.
+O **MetricFlow AI** é uma plataforma analítica desenvolvida em Streamlit que orquestra modelos de linguagem de larga escala (LLMs) para converter descrições de iniciativas de negócio em frameworks de medição estruturados. O sistema utiliza a **Mistral AI** para análise profunda de contexto e o **OpenRouter Gemma 4** para a geração técnica de KPIs e OKRs.
 
 ---
 
@@ -12,7 +12,7 @@ O **MetricFlow AI** é uma plataforma analítica desenvolvida em Streamlit que o
 - **Interface**: [Streamlit](https://streamlit.io/)
 - **Modelos de IA**:
     - **Mistral AI**: `mistral-large-latest` (Análise de Contexto)
-    - **OpenAI**: `gpt-4o` (Geração de Métricas e Resumo Executivo)
+    - **OpenRouter**: `google/gemma-4-31b-it` (Geração de Métricas e Resumo Executivo)
 - **Extração de Documentos**: `pypdf`, `python-docx`
 - **Geração de Relatórios**: `xhtml2pdf`, `markdown`
 - **Segurança e Validação**: `pydantic`, `PyYAML`
@@ -29,7 +29,7 @@ O repositório segue uma estrutura modular e desacoplada:
 ├── config/                # Gerenciamento de prompts estruturados (YAML)
 ├── services/              # Camada de integração com APIs externas e lógica core
 │   ├── mistral_service.py # Engine de análise contextual
-│   ├── openai_service.py  # Engine de geração de métricas/resumos
+│   ├── openai_service.py  # Engine OpenRouter de geração de métricas/resumos
 │   └── pdf_generator.py   # Renderização de relatórios técnicos
 ├── ui/                    # Componentes modulares da interface de usuário
 ├── utils/                 # Utilitários de segurança, telemetria, cache e validação
@@ -44,7 +44,7 @@ O repositório segue uma estrutura modular e desacoplada:
 ### Pré-requisitos
 - Python 3.11 ou superior
 - Git
-- Chaves de API: Mistral AI e OpenAI
+- Chaves de API: Mistral AI e OpenRouter
 
 ### Instalação Local
 
@@ -70,7 +70,9 @@ O repositório segue uma estrutura modular e desacoplada:
 ### Configuração
 Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
 ```env
-OPENAI_API_KEY=sua_chave_aqui
+OPENROUTER_API_KEY=sua_chave_aqui
+OPENROUTER_MODEL=google/gemma-4-31b-it
+OPENROUTER_API_URL=https://openrouter.ai/api/v1
 MISTRAL_API_KEY=sua_chave_aqui
 STREAMLIT_ENVIRONMENT=development
 ```

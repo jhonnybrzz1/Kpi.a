@@ -6,8 +6,8 @@ def render_header() -> None:
         """
 <div class="mf-header">
     <h1>🧠 MetricFlow AI</h1>
-    <p>Sistema Inteligente de Métricas Otimizado (metrics-review v2)</p>
-    <span class="mf-badge">✦ Mistral AI &nbsp;+&nbsp; OpenAI GPT-5.4 nano</span>
+    <p>Sistema Inteligente de Arquitetura de Métricas Estratégicas</p>
+    <span class="mf-badge">✦ Powered by Mistral AI + OpenRouter Gemma 4</span>
 </div>
 """,
         unsafe_allow_html=True,

@@ -126,13 +126,18 @@ openai:
 
       Princípios não-negociáveis:
       - North Star é UMA ÚNICA métrica de OUTCOME (não output, não atividade).
-      - L1 Health Indicators cobrem 6 pilares: Acquisition, Activation, Engagement,
-        Retention, Monetization, Satisfaction. Idealmente 1 métrica por pilar.
+      - L1 Health Indicators cobrem EXATAMENTE 6 pilares, sem duplicação:
+        Acquisition, Activation, Engagement, Retention, Monetization, Satisfaction.
+        Deve haver 1 métrica por pilar.
       - L2 são DIAGNÓSTICOS de L1 — cada L2 deve referenciar (`vinculo_l1`) uma L1
-        existente na mesma resposta. Não pode ficar órfã.
+        existente na mesma resposta. Não pode ficar órfã, e toda L1 deve ter pelo
+        menos uma L2 vinculada.
       - Counter-metrics protegem contra otimização perversa (ex.: aumentar
         engajamento via rage-clicks, aumentar conversão sacrificando retenção).
       - OKRs: objetivos qualitativos; KRs SEMPRE com baseline e meta numéricas.
+        Nunca use placeholders como "TBD", "a_definir", "Não mencionado", "manual"
+        ou "sem baseline". Se não houver baseline, use uma medição inicial numérica
+        planejada, por exemplo baseline=0 e meta=3 medições concluídas.
       - Implementação: ferramentas reais (BigQuery, Mixpanel, GA4, Amplitude…),
         queries SQL exemplificadas (não pseudocódigo).
 
@@ -159,8 +164,11 @@ openai:
 
       Antes de devolver o JSON, VALIDE internamente (auto-verificação):
       ✓ NSM tem fórmula concreta (ex.: "soma de X por usuário ativo / mês"), não só nome.
+      ✓ Existem exatamente 6 L1, uma por pilar obrigatório, sem pilar duplicado.
       ✓ Cada `l2_diagnostic_metrics[i].vinculo_l1` corresponde a uma L1 listada acima.
+      ✓ Toda L1 tem ao menos 1 L2 diagnóstica vinculada.
       ✓ Cada KR tem `baseline` e `meta` numéricos (não strings vazias nem "aumentar").
+      ✓ Nenhum KR usa placeholder ("TBD", "a_definir", "manual", "Não mencionado").
       ✓ `implementacao.ferramentas` traz ferramentas reais e nomeadas.
       ✓ Ao menos 1 counter-metric e 1 risco/viés.
 
@@ -213,3 +221,41 @@ openai:
         }},
         "riscos_e_vieses": ["lista"]
       }}
+  review_metrics:
+    system: |
+      Você é um auditor sênior de OKRs e métricas estratégicas (CPO-level).
+      Sua tarefa é avaliar com RIGOR técnico a qualidade de uma arquitetura de métricas.
+
+      Critérios de reprovação (aprovado=false):
+      1. North Star genérica (ex: "Aumentar Lucro") sem fórmula ou justificativa clara.
+      2. KRs sem números ("aumentar engajamento" em vez de "40% para 60%").
+      3. L1 sem métrica de "Satisfaction" ou "Retention".
+      4. Ausência de Counter-metrics reais.
+
+      Escala de Score:
+      - 0.0 - 0.5: Crítico (precisa de refação total).
+      - 0.6 - 0.7: Regular (precisa de ajustes em KRs ou L2).
+      - 0.8 - 1.0: Excelente (pronto para deploy).
+    user: |
+      Avalie as métricas geradas para a iniciativa: "{initiative_text}"
+
+      MÉTRICAS GERADAS:
+      {metrics_json}
+
+      Retorne APENAS um JSON válido:
+      {{
+        "score": 0.0,
+        "criticas": ["lista curta e ácida de melhorias"],
+        "aprovado": true|false
+      }}
+  refine_metrics:
+    system: |
+      Você é um arquiteto de métricas em processo de revisão.
+      Você recebeu críticas de um auditor e deve REFINAR a arquitetura anterior.
+      Mantenha a estrutura JSON original, mas corrija os pontos citados.
+    user: |
+      INICIATIVA: {initiative_text}
+      ARQUITETURA ANTERIOR: {metrics_json}
+      CRÍTICAS DO AUDITOR: {critiques}
+
+      Gere a versão REFINADA seguindo a estrutura original.

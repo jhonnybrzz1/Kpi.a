@@ -1,0 +1,52 @@
+🚀 Iniciando Teste Real do MetricFlow AI (Pipeline Refatorado)
+MistralService initialized with model: mistral-large-2512
+OpenRouter service initialized with model: google/gemma-4-31b-it
+
+INICIATIVA: Implementar um sistema de recomendação baseado em IA para aumentar a conversão de carrinhos abandonados em um e-commerce de moda.
+
+[Stage 1] 🧠 Etapa 1/4 — Contexto (Mistral AI)...
+  -> (Mocking Mistral Stage 1)
+  -> ✅ Contexto analisado (complete)
+
+[Stage 2] 📊 Etapa 2/4 — Arquitetura de Métricas...
+HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
+openrouter metrics op_id=e2253f55-1695-4fcc-b0e6-cfe8bd2ef058 valid=True lat=54552ms
+HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
+  -> ✅ Métricas geradas (complete)
+
+[Stage 3] ✍️ Etapa 3/4 — Resumo Executivo...
+  -> (Streaming Summary...)HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 200 OK"
+ Done.
+  -> ✅ Resumo gerado (complete)
+
+[Stage 4] 📄 Etapa 4/4 — Relatório PDF...
+  -> ⚠️ PDF indisponível — Markdown gerado (complete)
+
+==================================================
+✅ RESULTADO DA ANÁLISE
+==================================================
+North Star: Recovered Cart Revenue (RCR)
+Definição: Soma do valor bruto de pedidos (GMV) originados via cliques em recomendações de IA em fluxos de recuperação de carrinho / período
+
+OKRs Principais:
+- Maximizar a recuperação de receita via personalização inteligente de carrinhos
+  * KR: Aumentar a Recovered Cart Conversion Rate (2.1% -> 4.5%)
+  * KR: Elevar o Recovered Cart Revenue (RCR) mensal (R$ 150k -> R$ 250k)
+  * KR: Manter a Return Rate de itens recomendados abaixo do limite (12% -> 15%)
+
+Resumo Executivo:
+**Tese.** Substituir lembretes genéricos por recomendações de IA para elevar a conversão de carrinhos abandonados de 2,1% para 4,5%.
+
+**Métricas-chave.**
+- North Star: Recovered Cart Revenue — R$ 150k $\rightarrow$ R$ 250k
+- L1 prioritária: Recovered Cart Conversion Rate — 2,1% $\rightarrow$ 4,5%
+- Counter-metric: Unsubscribe Rate — limite de 2%
+
+**OKRs prioritários.**
+- Aumentar Recovered Cart Conversion Rate: 2,1% $\rightarrow$ 4,5%
+- Elevar Recovered Cart Revenue (RCR) mensal: R$ 150k $\rightarrow$ R$ 250k
+
+**Riscos & próximos passos.**
+- Risco: Overfitting do modelo sugerindo apenas best-sellers, reduzindo a personalização.
+- Mitigação: A/B test comparando modelo de similaridade vs. modelo de popularidade.
+- Decisão: CPO define a frequência máxima de notificações para evitar churn de canais até sexta-feira.

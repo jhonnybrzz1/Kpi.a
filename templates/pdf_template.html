@@ -2,16 +2,47 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
-        @page { margin: 1.2cm; size: A4; }
-        body { font-family: 'Helvetica', sans-serif; color: #1e293b; line-height: 1.4; }
-        .header { text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 10px; margin-bottom: 20px; }
-        .header h1 { color: #1e1b4b; margin: 0; font-size: 22pt; }
-        .header p { color: #6366f1; margin: 0; font-weight: bold; }
+        @page { 
+            margin: 1.2cm; 
+            size: A4; 
+        }
         
-        .section { margin-bottom: 20px; page-break-inside: avoid; }
+        body { 
+            font-family: Helvetica, Arial, sans-serif; 
+            color: #1e293b; 
+            line-height: 1.5; 
+            font-size: 10pt;
+        }
+        
+        .header { 
+            text-align: center; 
+            border-bottom: 3px solid #6366f1; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px; 
+        }
+        
+        .header h1 { 
+            color: #1e1b4b; 
+            margin: 0 0 5px 0; 
+            font-size: 22pt; 
+        }
+        
+        .header p { 
+            color: #6366f1; 
+            margin: 0; 
+            font-weight: bold; 
+            font-size: 11pt;
+        }
+        
+        .section { 
+            margin-bottom: 20px; 
+            page-break-inside: avoid; 
+        }
+        
         .section-title { 
-            background: #f1f5f9; 
+            background-color: #f1f5f9; 
             padding: 8px 12px; 
             font-size: 13pt; 
             font-weight: bold; 
@@ -20,33 +51,157 @@
             margin-bottom: 10px;
         }
         
-        .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .north-star-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 10px; }
+        .card { 
+            border: 1px solid #e2e8f0; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+        }
         
-        .grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
-        .stat { flex: 1; min-width: 20%; background: #f8fafc; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #f1f5f9; }
-        .stat-label { font-size: 8pt; color: #64748b; text-transform: uppercase; }
-        .stat-value { font-size: 10pt; font-weight: bold; color: #1e293b; }
+        .north-star-box { 
+            background-color: #f0f9ff; 
+            border: 1px solid #bae6fd; 
+            padding: 15px; 
+            margin-bottom: 10px;
+        }
+        
+        .stat-grid {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .stat-row {
+            width: 100%;
+        }
+        
+        .stat { 
+            background-color: #f8fafc; 
+            padding: 8px; 
+            text-align: center; 
+            border: 1px solid #f1f5f9;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label { 
+            font-size: 8pt; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        .stat-value { 
+            font-size: 10pt; 
+            font-weight: bold; 
+            color: #1e293b; 
+            display: block;
+        }
 
-        .success-box { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px; border-radius: 8px; margin-bottom: 10px; color: #065f46; }
-        .info-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px; border-radius: 8px; margin-bottom: 10px; color: #1e40af; }
+        .success-box { 
+            background-color: #ecfdf5; 
+            border: 1px solid #a7f3d0; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            color: #065f46; 
+        }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8fafc; text-align: left; padding: 8px; font-size: 9pt; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 9pt; vertical-align: top; }
+        .info-box { 
+            background-color: #eff6ff; 
+            border: 1px solid #bfdbfe; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            color: #1e40af; 
+        }
         
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 7pt; font-weight: bold; background: #e0e7ff; color: #4338ca; }
-        .warning-text { color: #9a3412; font-size: 8.5pt; font-weight: bold; margin-top: 4px; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
         
-        .okr-card { border-left: 3px solid #10b981; padding-left: 10px; margin-bottom: 15px; }
-        .kr-meta { font-size: 8pt; color: #64748b; font-style: italic; }
+        th { 
+            background-color: #f8fafc; 
+            text-align: left; 
+            padding: 8px; 
+            font-size: 9pt; 
+            border-bottom: 2px solid #e2e8f0; 
+        }
         
-        .footer { text-align: center; font-size: 8pt; color: #94a3b8; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+        td { 
+            padding: 8px; 
+            border-bottom: 1px solid #f1f5f9; 
+            font-size: 9pt; 
+            vertical-align: top; 
+        }
         
-        /* Markdown support */
-        .justificativa-content { font-size: 9.5pt; color: #334155; }
-        .justificativa-content p { margin: 5px 0; }
-        .justificativa-content ul { margin: 5px 0; padding-left: 20px; }
+        .badge { 
+            display: inline-block; 
+            padding: 2px 6px; 
+            font-size: 7pt; 
+            font-weight: bold; 
+            background-color: #e0e7ff; 
+            color: #4338ca; 
+        }
+        
+        .warning-text { 
+            color: #9a3412; 
+            font-size: 8.5pt; 
+            font-weight: bold; 
+            margin-top: 4px; 
+        }
+        
+        .okr-card { 
+            border-left: 3px solid #10b981; 
+            padding-left: 10px; 
+            margin-bottom: 15px; 
+        }
+        
+        .kr-meta { 
+            font-size: 8pt; 
+            color: #64748b; 
+            font-style: italic; 
+        }
+        
+        .footer { 
+            text-align: center; 
+            font-size: 8pt; 
+            color: #94a3b8; 
+            margin-top: 30px; 
+            border-top: 1px solid #e2e8f0; 
+            padding-top: 10px; 
+        }
+        
+        .justificativa-content { 
+            font-size: 9.5pt; 
+            color: #334155; 
+        }
+        
+        .justificativa-content p { 
+            margin: 5px 0; 
+        }
+        
+        .justificativa-content ul { 
+            margin: 5px 0; 
+            padding-left: 20px; 
+        }
+        
+        h3 {
+            margin: 10px 0 5px 0;
+            color: #0369a1;
+            font-size: 12pt;
+        }
+        
+        h4 {
+            margin: 10px 0 5px 0;
+            font-size: 11pt;
+        }
+        
+        strong {
+            font-weight: bold;
+        }
+        
+        small {
+            font-size: 8pt;
+        }
     </style>
 </head>
 <body>
@@ -55,22 +210,47 @@
         <p>RELATÓRIO ESTRATÉGICO DE MÉTRICAS</p>
     </div>
 
-    <div class="grid">
-        <div class="stat"><div class="stat-label">Data</div><div class="stat-value">{{DATE}}</div></div>
-        <div class="stat"><div class="stat-label">Empresa</div><div class="stat-value">{{COMPANY}}</div></div>
-        <div class="stat"><div class="stat-label">Responsável</div><div class="stat-value">{{RESPONSIBLE}}</div></div>
-    </div>
+    <table class="stat-grid">
+        <tr class="stat-row">
+            <td class="stat">
+                <span class="stat-label">Data</span>
+                <span class="stat-value">{{DATE}}</span>
+            </td>
+            <td class="stat">
+                <span class="stat-label">Empresa</span>
+                <span class="stat-value">{{COMPANY}}</span>
+            </td>
+            <td class="stat">
+                <span class="stat-label">Responsável</span>
+                <span class="stat-value">{{RESPONSIBLE}}</span>
+            </td>
+        </tr>
+    </table>
 
     {{EXECUTIVE_SUMMARY}}
 
     <div class="section">
         <div class="section-title">🧠 Contexto e Resumo do PRD</div>
-        <div class="grid">
-            <div class="stat"><div class="stat-label">Tipo</div><div class="stat-value">{{CONTEXT_TYPE}}</div></div>
-            <div class="stat"><div class="stat-label">Game</div><div class="stat-value">{{CONTEXT_GAME}}</div></div>
-            <div class="stat"><div class="stat-label">Objetivo</div><div class="stat-value">{{CONTEXT_OBJECTIVE}}</div></div>
-            <div class="stat"><div class="stat-label">Etapa</div><div class="stat-value">{{CONTEXT_FUNNEL}}</div></div>
-        </div>
+        <table class="stat-grid">
+            <tr class="stat-row">
+                <td class="stat">
+                    <span class="stat-label">Tipo</span>
+                    <span class="stat-value">{{CONTEXT_TYPE}}</span>
+                </td>
+                <td class="stat">
+                    <span class="stat-label">Game</span>
+                    <span class="stat-value">{{CONTEXT_GAME}}</span>
+                </td>
+                <td class="stat">
+                    <span class="stat-label">Objetivo</span>
+                    <span class="stat-value">{{CONTEXT_OBJECTIVE}}</span>
+                </td>
+                <td class="stat">
+                    <span class="stat-label">Etapa</span>
+                    <span class="stat-value">{{CONTEXT_FUNNEL}}</span>
+                </td>
+            </tr>
+        </table>
         <div class="success-box">
             <strong>🎯 Resumo do PRD (Objetivo):</strong><br>
             {{CONTEXT_PRD}}

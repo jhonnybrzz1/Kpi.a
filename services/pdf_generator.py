@@ -24,12 +24,34 @@ class PDFGenerator:
             with open(self.template_path, "r", encoding="utf-8") as f:
                 template = f.read()
             html_content = self._render_template(template, data)
+
+            # Ensure proper encoding and structure
+            if not html_content.strip():
+                raise Exception("Template renderizado está vazio")
+
             pdf_buffer = BytesIO()
-            pisa_status = pisa.CreatePDF(html_content, dest=pdf_buffer, encoding="utf-8")
+
+            # CreatePDF with explicit encoding and error handling
+            pisa_status = pisa.CreatePDF(
+                src=html_content,
+                dest=pdf_buffer,
+                encoding="utf-8",
+                link_callback=None
+            )
+
             if pisa_status.err:
-                raise Exception("Falha na geração dos bytes do PDF")
-            return pdf_buffer.getvalue()
+                error_msg = f"xhtml2pdf retornou erro: {pisa_status.err} erros"
+                logger.error(error_msg)
+                raise Exception(error_msg)
+
+            pdf_bytes = pdf_buffer.getvalue()
+            if len(pdf_bytes) < 100:  # PDF válido deve ter pelo menos alguns bytes
+                raise Exception("PDF gerado está vazio ou corrompido")
+
+            return pdf_bytes
+
         except Exception as e:
+            logger.error(f"Erro detalhado ao gerar PDF: {str(e)}")
             raise Exception(f"Erro ao gerar PDF: {str(e)}")
 
     def generate_report_with_fallback(self, data: Dict[str, Any]) -> Tuple[str, bytes, str]:
